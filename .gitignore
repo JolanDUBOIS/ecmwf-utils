@@ -1,0 +1,8 @@
+logs/
+data/
+queries/
+notebooks/
+__pycache__/
+*.pyc
+.env
+.vscode/
