@@ -5,5 +5,4 @@ lookback: 48 # int, in hours, e.g. 48 means forecasts from the last 48 hours
 step-granularity: 1 # int, in hours, e.g. 1 means every hour, 3 means every 3 hours
 
 # overwrite: true # bool, whether to overwrite existing files # how to handle this is to be determined
-
 # max-points-per-request: ... # to be determined

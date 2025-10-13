@@ -75,26 +75,41 @@ The query is parsed by `src/setup/query.py` into `Query`, `PointCloud` and `Time
 
 ## CLI / Usage
 
-Entry point: the package exposes a module-based CLI. Examples:
+The package exposes a module-based CLI that now uses subcommands. There are two primary subcommands:
+
+- `retrieval` — run the data retrieval pipeline
+- `preprocess` — run the data preprocessing pipeline
+
+Examples:
 
 ```bash
-# Run a retrieval with the example query
-poetry run python -m src --query-path ./queries/penmanshiel.json
+# Retrieval: run a retrieval with the example query
+poetry run python -m src retrieval --query-path ./queries/penmanshiel.json
 
-# Run with explicit level and config
-poetry run python -m src --query-path ./queries/penmanshiel.json --level surface --config config/config.yml
+# Retrieval with explicit level and config
+poetry run python -m src retrieval --query-path ./queries/penmanshiel.json --level surface --config config/config.yml
 
-# Dry run (allocates paths but does not finalize files into the index)
-poetry run python -m src --query-path ./queries/penmanshiel.json --dry-run
+# Retrieval dry run (allocates paths but does not finalize saved entries)
+poetry run python -m src retrieval --query-path ./queries/penmanshiel.json --dry-run
+
+# Preprocess: run preprocessing on a landing folder and write to a staging file
+poetry run python -m src preprocess --landing-folder ./data/first-test --staging-file ./data/first-test/interpolated_concatenated_data_2016.csv
 ```
 
-Available options (brief):
+Subcommand options (brief):
+
+retrieval:
 
 - `--config` : path to YAML configuration (default `config/config.yml`)
 - `--query-path` : path to the JSON query file
 - `--level` : `surface` or `model` (default `surface`)
 - `--dry-run` : simulate retrievals without finalizing saved entries
-- `--verbose` : (reserved) enable more verbose logging (not implemented yet)
+- `--verbose` : (reserved) enable more verbose logging (placeholder)
+
+preprocess:
+
+- `--landing-folder` : folder containing raw data files to preprocess (default comes from the program's landing path)
+- `--staging-file` : file path to save preprocessed/staged data
 
 CLI parsing lives in `src/setup/cli.py`.
 
@@ -116,7 +131,7 @@ Key modules:
 
 ## Storage layout
 
-By default the output folder is determined by the `OUTPUT_FOLDER_PATH` environment variable or a project default. The layout created by `StorageManager` is:
+By default the output folder is determined by the `LANDING_FOLDER_PATH` environment variable or a project default. The layout created by `StorageManager` is:
 
 ```
 <output_folder>/
