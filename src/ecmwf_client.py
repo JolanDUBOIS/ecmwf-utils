@@ -50,7 +50,7 @@ class ECMWFClient:
                 retrieval_meta = self._make_retrieval_meta(
                     issued, query, config, level
                 )
-                ticket = self.storage_manager.allocate(retrieval_meta)
+                ticket = self.storage_manager.allocate(retrieval_meta, query)
 
                 try:
                     logger.debug(f"ECMWF request: {request}")

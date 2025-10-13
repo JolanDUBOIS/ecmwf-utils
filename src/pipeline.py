@@ -4,7 +4,7 @@ from . import logger
 from .setup import Config, Query
 from .ecmwf_client import ECMWFClient
 
-def run_pipeline(
+def run_retrieval(
     config: Config,
     query: Query,
     output_folder: Path,
@@ -13,6 +13,7 @@ def run_pipeline(
     verbose: bool = False # Not yet implemented
 ):
     logger.info("Starting pipeline...")
+    logger.debug(f"Output folder: {output_folder}")
     client = ECMWFClient(output_folder=output_folder)
     client.get_forecast(
         config=config,
