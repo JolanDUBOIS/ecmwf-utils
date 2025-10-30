@@ -8,7 +8,9 @@ Key features
 - Save retrieved NetCDF files and store retrieval metadata and queries in a simple index (index.csv)
 - Provide a small CLI and configuration via YAML (and optional environment overrides)
 
-## Requirements
+## Installation & Requirements
+
+### Requirements
 
 - Python 3.11
 - Poetry (recommended) to install and manage dependencies
@@ -16,7 +18,7 @@ Key features
 
 Refer to `pyproject.toml` for exact dependency versions.
 
-## Installation
+### Installation
 
 Install dependencies with Poetry:
 
@@ -27,6 +29,8 @@ poetry install
 Ensure ECMWF credentials are available. Typically, `ecmwfapi` uses `~/.ecmwfapirc`. If you use environment variables or a different credentials file, document that mapping here.
 
 ## Configuration
+
+### YAML configuration file
 
 Configuration is read from `./config/config.yml`. Important settings are:
 
@@ -51,26 +55,28 @@ step_granularity: 1 # int, in hours, e.g. 1 means every hour, 3 means every 3 ho
 
 This configuration requests the HRES model at surface level with six specific variables, retrieves forecasts from the last 48 hours, and uses a 1-hour step interval.
 
-## Query file format
+### Environment variables
 
-A query is a JSON file with a `time_range` (ISO 8601 strings) and a `points` array of `[lat, lon]` pairs. Example:
+Three environment variables can be defined:
+- `LOG_FILE_PATH`: override the default value for the log file (DEBUG level)
+- `LANDING_PATH`: path to the landing directory
+- `STAGING_PATH`: path to the staging file path (CSV file, parquet accepted in a future update)
 
-```json
-{
-  "time_range": {
-    "start": "2016-01-01T00:00:00Z",
-    "end": "2016-01-15T00:00:00Z"
-  },
-  "points": [
-    [55.902502, -2.306389],
-    [55.900008, -2.301268]
-  ]
-}
+To define those variables, either use a `.env` file or run the following command directly into your terminal:
+
+```bash
+export LOG_FILE_PATH="./logs/DEBUG_test.log"
+export LANDING_PATH="./data/landing/"
+export STAGING_PATH="./data/staging/main.csv"
 ```
 
-The query is parsed by `src/query.py` into `Query`, `PointCloud` and `TimeRange` dataclasses.
+If you're using a `.env` file, don't forget to run:
 
-## CLI / Usage
+```bash
+source .env
+```
+
+### CLI / Usage
 
 The package exposes a module-based CLI that now uses subcommands. There are two primary subcommands:
 
@@ -91,6 +97,12 @@ poetry run python -m src retrieval --query-path ./queries/example.json --model e
 
 # Retrieval dry run (allocates paths but does not finalize saved entries)
 poetry run python -m src retrieval --dry-run
+
+# Preprocess (using env variables)
+poetry run python -m src preprocess
+
+# Preprocess (overrides env variables)
+poetry run python -m src preprocess --landing-path ./data/landing/ --staging-path ./data/staging/main.csv
 ```
 
 Retrieval options (summary):
@@ -104,10 +116,49 @@ Retrieval options (summary):
 
 Preprocess options (WIP):
 
-- `--landing-path` : folder with raw retrieved files
-- `--staging-path` : output file path for preprocessed data
+- `--landing-path` : folder with raw retrieved files (overrides `LANDING_PATH` env variable)
+- `--staging-path` : output file path for preprocessed data (overrides `STAGING_PATH` env variable)
 
 CLI parsing lives in `src/setup/cli.py`.
+
+### Configuration sources & precedence
+
+The CLI parameters override environment variables and evnironment variables override YAML configuration values. The table below is a summary of all configuration variable the user has access to:
+
+| Parameter           | YAML config file | Environment variable | CLI | Default |
+|----------------------|------------------|----------------------|-----|----------|
+| Model                | Y               | -                   | Y  | HRES |
+| Level                | Y               | -                   | Y  | surface (only one implemented) |
+| Variables            | Y               | -                   | -  | - |
+| Lookback (window)    | Y               | -                   | -  | - |
+| Step granularity     | Y               | -                   | -  | - |
+| Logging file path    | -               | Y                   | -  | `./logs/DEBUG.log` |
+| Logging verbosity    | -               | -                   | Y  | `INFO` |
+| Query path           | -               | -                   | Y  | `./queries/default.json` |
+| Landing path         | -               | Y                   | Y  | `./data/landing/` |
+| Staging path         | -               | Y                   | Y  | `./data/staging/` |
+| Dry run              | -               | -                   | Y  | `False` |
+| …                    | …                | …                    | …   | … |
+
+
+## Query file
+
+A query is a JSON file with a `time_range` (ISO 8601 strings) and a `points` array of `[lat, lon]` pairs. Example:
+
+```json
+{
+  "time_range": {
+    "start": "2016-01-01T00:00:00Z",
+    "end": "2016-01-15T00:00:00Z"
+  },
+  "points": [
+    [55.902502, -2.306389],
+    [55.900008, -2.301268]
+  ]
+}
+```
+
+The query is parsed by `src/query.py` into `Query`, `PointCloud` and `TimeRange` dataclasses.
 
 ## What happens when you run it
 
