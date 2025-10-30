@@ -11,7 +11,7 @@ def parse_args() -> argparse.Namespace:
     retrieval_parser.add_argument(
         "--model",
         type=str,
-        help="Model type (hres or lres)"
+        help="Model type (hres or ens)"
     )
     retrieval_parser.add_argument(
         "--level",
