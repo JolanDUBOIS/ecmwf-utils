@@ -5,14 +5,17 @@ import xarray as xr
 import pandas as pd
 
 from . import logger
-from ..setup import Query
+from ..setup import PipelineConfig
+from ..query import Query
 
 
 def run_preprocessing(
-    landing_folder: Path,
-    staging_file_path: Path,
+    config: PipelineConfig,
 ):
     """ TODO """
+    landing_folder = Path(config.landing_path)
+    staging_file_path = landing_folder / "main.csv"
+
     # Validate paths and read data
     if staging_file_path.suffix != ".csv":
         logger.error(f"Staging file {staging_file_path} is not a .csv file.")
