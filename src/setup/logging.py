@@ -5,11 +5,18 @@ from pathlib import Path
 import yaml
 
 
-def setup_logging(config_file: Path):
-    """ Set up logging configuration from a YAML file. """
-    with config_file.open(mode='r') as f:
-        config = yaml.safe_load(f.read())
-        logging.config.dictConfig(config)
+def setup_logging(config_file: Path, logging_path: Path | None = None) -> None:
+    """ Set up logging configuration from a YAML file, with optional log file override. """
+    with config_file.open("r") as f:
+        config = yaml.safe_load(f)
+
+    # Override before applying configuration
+    if logging_path:
+        for handler in config.get("handlers", {}).values():
+            if handler.get("class") == "logging.FileHandler":
+                handler["filename"] = str(logging_path)
+
+    logging.config.dictConfig(config)
 
 
 ecmwfapi_logger = logging.getLogger("ecmwfapi")

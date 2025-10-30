@@ -1,29 +1,27 @@
-import os
 from pathlib import Path
 
-from dotenv import load_dotenv
-
-from .pipeline import run_pipeline
-from .constants import DEFAULT_OUTPUT_FOLDER
-from .setup import parse_args, setup_logging, Query, Config
+from .setup import parse_args, setup_logging, load_config
 
 
-load_dotenv()
-OUTPUT_FOLDER_PATH = Path(os.getenv("OUTPUT_FOLDER_PATH", DEFAULT_OUTPUT_FOLDER))
+LOGGING_CONFIG_PATH = Path(__file__).parent.parent / "config" / "logging.yml"
+CONFIG_PATH = Path(__file__).parent.parent / "config" / "config.yml"
 
 if __name__ == "__main__":
-    logging_config_path = Path(__file__).parent.parent / "config" / "logging.yml"
-    setup_logging(logging_config_path)
-    
+
     args = parse_args()
-    query = Query.from_json(args.query_path)
-    config = Config.from_yaml(args.config)
-    
-    run_pipeline(
-        config=config,
-        query=query,
-        output_folder=OUTPUT_FOLDER_PATH,
-        level=args.level,
-        dry_run=args.dry_run,
-        verbose=args.verbose
-    )
+    config = load_config(CONFIG_PATH, args)
+    setup_logging(LOGGING_CONFIG_PATH, config.logging_path)
+
+    if args.command == "retrieval":
+        from .pipeline import run_retrieval
+        run_retrieval(
+            config=config,
+            dry_run=args.dry_run,
+            verbose=args.verbose
+        )
+
+    elif args.command == "preprocess":
+        from .preprocessing import run_preprocessing
+        run_preprocessing(
+            config=config,
+        )

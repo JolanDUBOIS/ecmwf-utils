@@ -1,22 +1,18 @@
-from pathlib import Path
-
 from . import logger
-from .setup import Config, Query
+from .setup import PipelineConfig
+from .query import Query
 from .ecmwf_client import ECMWFClient
 
-def run_pipeline(
-    config: Config,
-    query: Query,
-    output_folder: Path,
-    level: str,
+def run_retrieval(
+    config: PipelineConfig,
     dry_run: bool = False,
     verbose: bool = False # Not yet implemented
 ):
     logger.info("Starting pipeline...")
-    client = ECMWFClient(output_folder=output_folder)
+    client = ECMWFClient(output_folder=config.landing_path)
+    query = Query.from_json(config.query_path)
     client.get_forecast(
         config=config,
         query=query,
-        level=level,
         dry_run=dry_run
     )
