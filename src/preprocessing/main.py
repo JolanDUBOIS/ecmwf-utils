@@ -14,20 +14,20 @@ def run_preprocessing(
 ):
     """ TODO """
     landing_folder = Path(config.landing_path)
-    staging_file_path = landing_folder / "main.csv"
+    staging_file = Path(config.staging_path)
 
     # Validate paths and read data
-    if staging_file_path.suffix != ".csv":
-        logger.error(f"Staging file {staging_file_path} is not a .csv file.")
-        raise ValueError(f"Staging file {staging_file_path} is not a .csv file.")
+    if staging_file.suffix != ".csv":
+        logger.error(f"Staging file {staging_file} is not a .csv file.")
+        raise ValueError(f"Staging file {staging_file} is not a .csv file.")
     try:
-        staging_df = pd.read_csv(staging_file_path)
+        staging_df = pd.read_csv(staging_file)
     except (FileNotFoundError, pd.errors.EmptyDataError):
-        logger.info(f"Initializing empty staging file at {staging_file_path}.")
-        staging_file_path.parent.mkdir(parents=True, exist_ok=True)
-        staging_file_path.touch(exist_ok=True)
+        logger.info(f"Initializing empty staging file at {staging_file}.")
+        staging_file.parent.mkdir(parents=True, exist_ok=True)
+        staging_file.touch(exist_ok=True)
         staging_df = pd.DataFrame(columns=['entry_id'])
-    logger.info(f"Read {len(staging_df)} entries from staging file {staging_file_path}.")
+    logger.info(f"Read {len(staging_df)} entries from staging file {staging_file}.")
 
     index_file = landing_folder / "index.csv"
     if not index_file.exists():
@@ -67,13 +67,14 @@ def run_preprocessing(
 
             # Add metadata
             df['entry_id'] = row['entry_id']
-            df['query_id'] = row['entry_id']
+            df['query_id'] = row['query_id']
             df['retrieval_id'] = row['retrieval_id']
+            df['model'] = row['model']
+            df['level'] = row['level']
             df['issued'] = row['issued']
-            df['level'] = row['level_type']
-            df['data_type'] = row['data_type']
             df['lookback_hours'] = row['lookback_hours']
             df['step_granularity'] = row['step_granularity']
+            df['variables'] = row['variables']
             df['timestamp'] = row['timestamp']
 
             # Concatenate to staging
@@ -86,5 +87,5 @@ def run_preprocessing(
             raise e
 
     # Save staging
-    staging_df.to_csv(staging_file_path, index=False)
-    logger.info(f"Saved {len(staging_df)} total entries to staging file {staging_file_path}.")
+    staging_df.to_csv(staging_file, index=False)
+    logger.info(f"Saved {len(staging_df)} total entries to staging file {staging_file}.")
