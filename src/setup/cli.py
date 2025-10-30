@@ -1,10 +1,7 @@
 import argparse
-from pathlib import Path
-
-from ..constants import DEFAULT_CONFIG_PATH, DEFAULT_QUERY_PATH, ALLOWED_LEVELS
 
 
-def parse_args(default_landing: Path, default_staging: Path) -> argparse.Namespace:
+def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Main entry point for the ECMWF Data Processing System.")
 
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -12,17 +9,25 @@ def parse_args(default_landing: Path, default_staging: Path) -> argparse.Namespa
     # === Retrieval pipeline ===
     retrieval_parser = subparsers.add_parser("retrieval", help="Run the data retrieval pipeline.")
     retrieval_parser.add_argument(
-        "--config",
+        "--model",
         type=str,
-        default=DEFAULT_CONFIG_PATH,
-        help="Path to the configuration file"
+        help="Model type (hres or ens)"
     )
     retrieval_parser.add_argument(
-        "--verbose",
-        action="store_true",
-        default=False,
-        help="Enable verbose logging"
-    ) # Not implemented yet
+        "--level",
+        type=str,
+        help="Level type (surface or model)"
+    )
+    retrieval_parser.add_argument(
+        "--query-path",
+        type=str,
+        help="Path to the JSON file containing the list of time ranges and points"
+    )
+    retrieval_parser.add_argument(
+        "--landing-path",
+        type=str,
+        help="Path to the folder where retrieved data files will be saved"
+    )
     retrieval_parser.add_argument(
         "--dry-run",
         action="store_true",
@@ -30,32 +35,23 @@ def parse_args(default_landing: Path, default_staging: Path) -> argparse.Namespa
         help="Perform a dry run without saving any files"
     )
     retrieval_parser.add_argument(
-        "--query-path",
-        type=str,
-        default=DEFAULT_QUERY_PATH,
-        help="Path to the JSON file containing the list of time ranges and points"
-    )
-    retrieval_parser.add_argument(
-        "--level",
-        type=str,
-        choices=ALLOWED_LEVELS,
-        default="surface",
-        help="Level type (surface or model)"
-    )
+        "--verbose",
+        action="store_true",
+        default=False,
+        help="Enable verbose logging"
+    ) # Not implemented yet
 
     # === Preprocessing pipeline ===
     preprocess_parser = subparsers.add_parser("preprocess", help="Run the data preprocessing pipeline.")
     preprocess_parser.add_argument(
-        "--landing-folder",
+        "--landing-path",
         type=str,
-        default=str(default_landing),
-        help="Folder containing raw data files to preprocess"
+        help="Path to the folder containing raw data files to preprocess"
     )
-    preprocess_parser.add_argument(
-        "--staging-file",
-        type=str,
-        default=str(default_staging),
-        help="Folder to save preprocessed data"
-    )
+    # preprocess_parser.add_argument(
+    #     "--staging-path",
+    #     type=str,
+    #     help="..."
+    # )
 
     return parser.parse_args()

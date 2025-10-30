@@ -1,4 +1,4 @@
-from ..setup.query import PointCloud
+from ..query import PointCloud
 
 
 def get_smallest_bounding_box(pc: PointCloud, res: float) -> tuple[float, float, float, float]:

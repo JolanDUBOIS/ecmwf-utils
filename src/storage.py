@@ -7,26 +7,31 @@ from dataclasses import dataclass
 import pandas as pd
 
 from . import logger
-from .setup import Query
+from .query import Query
 
 
 @dataclass
 class RetrievalMeta:
+    # Configuration parameters
+    model: str
+    level: str
+    lookback: int
+    step_granularity: int
+    variables: list[str]
+
+    # Query parameters
     issued: str
-    grid_res: float
     min_lat: float
     max_lat: float
     min_lon: float
     max_lon: float
-    lookback: int
-    step_granularity: int
-    level: str
 
     @property
     def id(self) -> str:
         hash_input = (
-            f"{self.issued}_{self.grid_res}_{self.min_lat}_{self.max_lat}_"
-            f"{self.min_lon}_{self.max_lon}_{self.lookback}_{self.step_granularity}_{self.level}"
+            f"{self.issued}_{self.min_lat}_{self.max_lat}_{self.min_lon}_"
+            f"{self.max_lon}_{self.lookback}_{self.step_granularity}_{self.level}_"
+            f"{','.join(self.variables)}"
         )
         return hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
@@ -51,14 +56,14 @@ class StorageManager:
 
     def allocate(self, meta: RetrievalMeta, query: Query) -> RetrievalTicket:
         """ Allocate storage for a new retrieval based on its metadata. """
-        data_subfolder = self.base_folder / "data" / meta.level
+        data_subfolder = self.base_folder / "data"
         queries_subfolder = self.base_folder / "queries"
         data_subfolder.mkdir(parents=True, exist_ok=True)
         queries_subfolder.mkdir(parents=True, exist_ok=True)
 
         now_timestamp = int(time.time())
 
-        data_file_path = data_subfolder / f"ecmwf_fc_{meta.level}_{meta.issued}_{now_timestamp}.nc"
+        data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.nc"
         logger.debug(f"Allocating data storage at {data_file_path}")
         query_file_path = queries_subfolder / f"query_{query.id}.json"
 
@@ -96,22 +101,31 @@ class StorageManager:
     def _add_index_entry(self, query: Query, ticket: RetrievalTicket) -> None:
         """ Add an entry to the index file. """
         entry = {
+            # File paths
             "data_file": str(ticket.data_file_path.relative_to(self.base_folder)),
             "query_file": str(ticket.query_file_path.relative_to(self.base_folder)),
+
+            # IDs
+            "retrieval_id": ticket.meta.id,
+            "entry_id": ticket.id,
+            "query_id": query.id,
+
+            # Metadata (config)
+            "model": ticket.meta.model,
+            "level": ticket.meta.level,
             "issued": ticket.meta.issued,
-            "data_type": "fc",
-            "level_type": ticket.meta.level,
+            "lookback_hours": ticket.meta.lookback,
+            "step_granularity": ticket.meta.step_granularity,
+            "variables": ",".join(ticket.meta.variables),
+
+            # Metadata (query computed)
             "lat_min": ticket.meta.min_lat,
             "lat_max": ticket.meta.max_lat,
             "lon_min": ticket.meta.min_lon,
             "lon_max": ticket.meta.max_lon,
-            "grid_res": ticket.meta.grid_res,
-            "lookback_hours": ticket.meta.lookback,
-            "step_granularity": ticket.meta.step_granularity,
+
+            # Retrieval timestamp
             "timestamp": ticket.now,
-            "retrieval_id": ticket.meta.id,
-            "entry_id": ticket.id,
-            "query_id": query.id,
         }
         df_entry = pd.DataFrame([entry])
 
