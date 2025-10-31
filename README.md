@@ -12,21 +12,30 @@ Key features
 
 ### Requirements
 
-- Python 3.11
-- Poetry (recommended) to install and manage dependencies
-- ECMWF API credentials (for example `~/.ecmwfapirc`) so `ecmwfapi` can authenticate
+- Python 3.12
+- Mamba (recommended) to create and manage the environment
 
-Refer to `pyproject.toml` for exact dependency versions.
+Refer to `requirements.txt` for the exact dependency list and versions.
 
 ### Installation
 
-Install dependencies with Poetry:
+Create the environment with Mamba:
 
 ```bash
-poetry install
+mamba create -n ecmwf-utils python=3.11
 ```
 
-Ensure ECMWF credentials are available. Typically, `ecmwfapi` uses `~/.ecmwfapirc`. If you use environment variables or a different credentials file, document that mapping here.
+Install dependencies into the environment:
+
+```bash
+mamba run -n ecmwf-utils pip install -r requirements.txt
+# or
+mamba env create -n ecmwf-utils -f environment.yml
+```
+
+### ECMWF Credentials
+
+To run any commands in this project, it is necessary to have ECMWF API credentials. They have to be stored at the location `~/.ecmwfapirc` so `ecmwfapi` can authenticate. If you use environment variables or a different credentials file, document that mapping here.
 
 ## Configuration
 
@@ -87,22 +96,22 @@ Examples:
 
 ```bash
 # Retrieval: run the default query ./queries/default.json
-poetry run python -m src retrieval
+mamba run -n ecmwf-utils python -m src retrieval
 
 # Retrieval: run a specific query
-poetry run python -m src retrieval --query-path ./queries/example.json
+mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json
 
 # Retrieval: run a specific query with a specific model 
-poetry run python -m src retrieval --query-path ./queries/example.json --model ens
+mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json --model ens
 
 # Retrieval dry run (allocates paths but does not finalize saved entries)
-poetry run python -m src retrieval --dry-run
+mamba run -n ecmwf-utils python -m src retrieval --dry-run
 
 # Preprocess (using env variables)
-poetry run python -m src preprocess
+mamba run -n ecmwf-utils python -m src preprocess
 
 # Preprocess (overrides env variables)
-poetry run python -m src preprocess --landing-path ./data/landing/ --staging-path ./data/staging/main.csv
+mamba run -n ecmwf-utils python -m src preprocess --landing-path ./data/landing/ --staging-path ./data/staging/main.csv
 ```
 
 Retrieval options (summary):
@@ -224,7 +233,7 @@ Adjust `config/logging.yml` to change handler levels or formats. The `--verbose`
 If tests exist under `tests/` you can run them with pytest:
 
 ```bash
-poetry run pytest -q
+mamba run -n ecmwf-utils pytest -q
 ```
 
 *WARNING: Tests are not implemented yet.*
