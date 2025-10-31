@@ -74,7 +74,7 @@ Three environment variables can be defined:
 To define those variables, either use a `.env` file or run the following command directly into your terminal:
 
 ```bash
-export LOG_FILE_PATH="./logs/DEBUG_test.log"
+export LOG_FILE_PATH="./logs/DEBUG.log"
 export LANDING_PATH="./data/landing/"
 export STAGING_PATH="./data/staging/main.csv"
 ```
