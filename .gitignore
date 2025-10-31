@@ -1,7 +1,6 @@
 logs/
-docs/
+notes/
 data/
-queries/
 __pycache__/
 *.pyc
 .env
