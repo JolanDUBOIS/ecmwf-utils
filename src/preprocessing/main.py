@@ -1,3 +1,4 @@
+import traceback
 from pathlib import Path
 
 import numpy as np
@@ -84,6 +85,7 @@ def run_preprocessing(
         
         except Exception as e:
             logger.error(f"Error processing entry {row['entry_id']}: {e}")
+            logger.debug(f"Traceback: {traceback.format_exc()}")
             raise e
 
     # Save staging

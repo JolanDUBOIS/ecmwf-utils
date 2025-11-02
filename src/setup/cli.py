@@ -48,10 +48,10 @@ def parse_args() -> argparse.Namespace:
         type=str,
         help="Path to the folder containing raw data files to preprocess"
     )
-    # preprocess_parser.add_argument(
-    #     "--staging-path",
-    #     type=str,
-    #     help="..."
-    # )
+    preprocess_parser.add_argument(
+        "--staging-path",
+        type=str,
+        help="..."
+    )
 
     return parser.parse_args()
