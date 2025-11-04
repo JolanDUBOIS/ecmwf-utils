@@ -1,7 +1,6 @@
 from . import logger
 from .setup import PipelineConfig
 from .query import Query
-from .ecmwf_client import ECMWFClient
 from .ecmwf_client_new import ECMWFRequestsExecutor, ECMWFRequestsBuilder
 
 def run_retrieval(
