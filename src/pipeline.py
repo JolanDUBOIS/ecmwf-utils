@@ -2,6 +2,7 @@ from . import logger
 from .setup import PipelineConfig
 from .query import Query
 from .ecmwf_client import ECMWFClient
+from .ecmwf_client_new import ECMWFRequestsExecutor, ECMWFRequestsBuilder
 
 def run_retrieval(
     config: PipelineConfig,
@@ -9,10 +10,16 @@ def run_retrieval(
     verbose: bool = False # Not yet implemented
 ):
     logger.info("Starting pipeline...")
-    client = ECMWFClient(output_folder=config.landing_path)
+
     query = Query.from_json(config.query_path)
-    client.get_forecast(
-        config=config,
-        query=query,
-        dry_run=dry_run
-    )
+    builder = ECMWFRequestsBuilder(config, query)
+    executor = ECMWFRequestsExecutor(config, query)
+
+    requests = builder.build_requests()
+    for request in requests:
+        executor.get_forecast(
+            request=request,
+            dry_run=dry_run
+        )
+
+    logger.info("Pipeline finished.")
