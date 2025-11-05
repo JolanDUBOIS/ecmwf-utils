@@ -6,7 +6,8 @@ from .defaults import (
     DEFAULT_LOG_PATH, DEFAULT_QUERY_PATH,
     DEFAULT_LANDING_PATH, DEFAULT_STAGING_PATH,
     DEFAULT_MODEL, DEFAULT_LEVEL, ALLOWED_MODELS,
-    DEFAULT_LOOKBACK, DEFAULT_STEP_GRANULARITY
+    DEFAULT_LOOKBACK, DEFAULT_STEP_GRANULARITY,
+    DEFAULT_RETRIEVAL_MODE, ALLOWED_RETRIEVAL_MODES
 )
 
 
@@ -22,8 +23,10 @@ class PipelineConfig:
     logging_path: Path = Path(DEFAULT_LOG_PATH)
 
     # Query settings
+    retrieval_mode: str = DEFAULT_RETRIEVAL_MODE
     query_path: Path = Path(DEFAULT_QUERY_PATH)
     variables: list[str] = field(default_factory=list)
+    issue_hours: list[str] = field(default_factory=list)
     lookback: int = DEFAULT_LOOKBACK
     step_granularity: int = DEFAULT_STEP_GRANULARITY
 
@@ -41,3 +44,7 @@ class PipelineConfig:
         # Validate model
         if self.model not in ALLOWED_MODELS:
             raise ValueError(f"Model '{self.model}' is not allowed. Choose from {ALLOWED_MODELS}.")
+
+        # Validate retrieval mode
+        if self.retrieval_mode not in ALLOWED_RETRIEVAL_MODES:
+            raise ValueError(f"Retrieval mode '{self.retrieval_mode}' is not allowed. Choose from {ALLOWED_RETRIEVAL_MODES}.")

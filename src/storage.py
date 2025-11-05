@@ -1,3 +1,4 @@
+from __future__ import annotations
 import time
 import json
 import hashlib
@@ -8,6 +9,7 @@ import pandas as pd
 
 from . import logger
 from .query import Query
+from .setup import PipelineConfig
 
 
 @dataclass
@@ -15,23 +17,37 @@ class RetrievalMeta:
     # Configuration parameters
     model: str
     level: str
+    retrieval_mode: str
+    variables: list[str]
+    issue_hours: list[str]
     lookback: int
     step_granularity: int
-    variables: list[str]
-
-    # Query parameters
     issued: str
-    min_lat: float
-    max_lat: float
-    min_lon: float
-    max_lon: float
+    area: str
+    grid: str
+
+    @classmethod
+    def from_request(cls, request: dict, config: PipelineConfig) -> RetrievalMeta:
+        return cls(
+            model=config.model,
+            level=config.level,
+            retrieval_mode=config.retrieval_mode,
+            variables=config.variables,
+            issue_hours=config.issue_hours,
+            lookback=config.lookback,
+            step_granularity=config.step_granularity,
+            issued=request["date"] + f" {request['time']}:00",
+            area=request["area"],
+            grid=request["grid"],
+        )
 
     @property
     def id(self) -> str:
         hash_input = (
-            f"{self.issued}_{self.min_lat}_{self.max_lat}_{self.min_lon}_"
-            f"{self.max_lon}_{self.lookback}_{self.step_granularity}_{self.level}_"
-            f"{','.join(self.variables)}"
+            f"{self.model}_{self.level}_{self.retrieval_mode}_"
+            f"{','.join(self.variables)}_{','.join(self.issue_hours)}_"
+            f"{self.lookback}_{self.step_granularity}_{self.issued}_"
+            f"{self.area}_{self.grid}"
         )
         return hashlib.sha256(hash_input.encode()).hexdigest()[:16]
 
@@ -64,6 +80,7 @@ class StorageManager:
         now_timestamp = int(time.time())
 
         data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.nc"
+        # data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.grib"
         logger.debug(f"Allocating data storage at {data_file_path}")
         query_file_path = queries_subfolder / f"query_{query.id}.json"
 
@@ -87,7 +104,7 @@ class StorageManager:
             self._save_query(query, ticket)
             self._add_index_entry(query, ticket)
         else:
-            logger.info(f"Failure, removing potential incomplete file {ticket.data_file_path}")
+            logger.info(f"Removing potential incomplete file {ticket.data_file_path}")
             if ticket.data_file_path.exists():
                 ticket.data_file_path.unlink()
 
@@ -113,16 +130,14 @@ class StorageManager:
             # Metadata (config)
             "model": ticket.meta.model,
             "level": ticket.meta.level,
+            "retrieval_mode": ticket.meta.retrieval_mode,
             "issued": ticket.meta.issued,
             "lookback_hours": ticket.meta.lookback,
             "step_granularity": ticket.meta.step_granularity,
             "variables": ",".join(ticket.meta.variables),
 
             # Metadata (query computed)
-            "lat_min": ticket.meta.min_lat,
-            "lat_max": ticket.meta.max_lat,
-            "lon_min": ticket.meta.min_lon,
-            "lon_max": ticket.meta.max_lon,
+            "grid": ticket.meta.grid,
 
             # Retrieval timestamp
             "timestamp": ticket.now,

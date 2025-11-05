@@ -1,6 +1,8 @@
 DEFAULT_MODEL = "hres"
 ALLOWED_MODELS = ["hres", "ens"]
 DEFAULT_LEVEL = "surface"
+DEFAULT_RETRIEVAL_MODE = "grid"
+ALLOWED_RETRIEVAL_MODES = ["point", "grid"]
 
 DEFAULT_LOG_PATH = "./logs/DEBUG.log"
 DEFAULT_QUERY_PATH = "./queries/default.json"

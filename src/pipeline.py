@@ -1,18 +1,52 @@
+import concurrent.futures
+
 from . import logger
 from .setup import PipelineConfig
 from .query import Query
-from .ecmwf_client import ECMWFClient
+from .ecmwf_client_new import ECMWFRequestsExecutor, ECMWFRequestsBuilder
 
 def run_retrieval(
     config: PipelineConfig,
     dry_run: bool = False,
-    verbose: bool = False # Not yet implemented
+    verbose: bool = False,  # Not yet implemented
+    max_concurrent_jobs: int = 1
 ):
     logger.info("Starting pipeline...")
-    client = ECMWFClient(output_folder=config.landing_path)
+
     query = Query.from_json(config.query_path)
-    client.get_forecast(
-        config=config,
-        query=query,
-        dry_run=dry_run
-    )
+    builder = ECMWFRequestsBuilder(config, query)
+    executor = ECMWFRequestsExecutor(config, query)
+
+    requests = builder.build_requests()
+
+    if max_concurrent_jobs > 1:
+        logger.info(f"Running with up to {max_concurrent_jobs} concurrent jobs...")
+        
+        with concurrent.futures.ThreadPoolExecutor(max_workers=max_concurrent_jobs) as thread_pool:
+            future_to_request = {
+                thread_pool.submit(executor.get_forecast, req, dry_run): req 
+                for req in requests
+            }
+
+            for future in concurrent.futures.as_completed(future_to_request):
+                original_request = future_to_request[future]
+
+                try:
+                    success = future.result()
+                    if success:
+                        logger.info(f"Successfully completed request: {original_request}")
+                    else:
+                        logger.warning(f"Request failed: {original_request}")
+                except Exception as e:
+                    logger.error(f"Unexpected error durring execution: {e}")
+            
+    else:
+        logger.info("Running sequentially...")
+
+        for request in requests:
+            executor.get_forecast(
+                request=request,
+                dry_run=dry_run
+            )
+
+    logger.info("Pipeline finished.")

@@ -35,6 +35,12 @@ def parse_args() -> argparse.Namespace:
         help="Perform a dry run without saving any files"
     )
     retrieval_parser.add_argument(
+        "--concurrent-jobs",
+        type=int,
+        default=1,
+        help="Maximum number of simultaneous API requests to execute. Use >1 for parallel execution (e.g., 5). Default is 1 (sequential)."
+    )
+    retrieval_parser.add_argument(
         "--verbose",
         action="store_true",
         default=False,
@@ -48,10 +54,10 @@ def parse_args() -> argparse.Namespace:
         type=str,
         help="Path to the folder containing raw data files to preprocess"
     )
-    # preprocess_parser.add_argument(
-    #     "--staging-path",
-    #     type=str,
-    #     help="..."
-    # )
+    preprocess_parser.add_argument(
+        "--staging-path",
+        type=str,
+        help="..."
+    )
 
     return parser.parse_args()
