@@ -5,6 +5,6 @@ retrieval_mode: point # str, either 'point' or 'grid'
 # variables: ['2t', '10u', '10v', 'msl', 'tp', '2d']
 variables: ['2t', '10u', '10v', 'msl', '2d', 'tp', 'sf', 'cp', 'lsp', 'sd'] # Everything that can be retrieved is here
 
-issue_times: ["00", "12"] # list of str, e.g. ["00", "06", "12", "18"] for 4 times a day
+issue_hours: ["00", "12"] # list of str, e.g. ["00", "06", "12", "18"] for 4 times a day
 lookback: 48 # int, in hours, e.g. 48 means forecasts from the last 48 hours
 step_granularity: 1 # int, in hours, e.g. 1 means every hour, 3 means every 3 hours
