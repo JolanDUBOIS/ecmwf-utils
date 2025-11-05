@@ -43,9 +43,11 @@ To run any commands in this project, it is necessary to have ECMWF API credentia
 
 Configuration is read from `./config/config.yml`. Important settings are:
 
-- `model`: string — ECMWF model to query, e.g. hres or ens
+- `model`: string — ECMWF model to query, e.g. `hres` or `ens`
 - `level`: string — the level to query (currently only surface supported)
-- `variables`: list — ECMWF parameter codes to request (e.g. `['2t', '10u', '10v']`)
+- `retrieval_mode`: string — whether to retrieve a grid or a single point (either `grid` or `point`)
+- `variables`: list of string — ECMWF parameter codes to request (e.g. `['2t', '10u', '10v']`)
+- `issue_hours`: list of string — hours of the day to retrieve the issued forecasts (e.g. `["00", "12"]` for model `hres` or `["00", "06", "12", "18"]` for model `ens`)
 - `lookback`: integer — forecast window (hours)
 - `step_granularity`: integer — step interval in hours (e.g. `1` for hourly output)
 
@@ -54,12 +56,13 @@ Here is an example for `config/config.yml`:
 ```yaml
 model: hres # str, either 'hres' or 'ens'
 level: surface # str, only surface is supported for now
+retrieval_mode: point # str, either 'point' or 'grid'
 
-variables: ['2t', '10u', '10v', 'msl', 'tp', '2d'] 
-# variables: ['2t', '10u', '10v', 'msl', '2d', 'tp', 'sf', 'cp', 'lsp', 'sd'] # Everything that can be retrieved is here
+variables: ['2t', '10u', '10v', 'msl', '2d', 'tp', 'sf', 'cp', 'lsp', 'sd'] 
 
-lookback: 48 # int, in hours, e.g. 48 means forecasts from the last 48 hours
-step_granularity: 1 # int, in hours, e.g. 1 means every hour, 3 means every 3 hours
+issue_hours: ["00", "06", "12", "18"]
+lookback: 48 # int, in hours
+step_granularity: 1 # int, in hours
 ```
 
 This configuration requests the HRES model at surface level with six specific variables, retrieves forecasts from the last 48 hours, and uses a 1-hour step interval.
@@ -101,8 +104,8 @@ mamba run -n ecmwf-utils python -m src retrieval
 # Retrieval: run a specific query
 mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json
 
-# Retrieval: run a specific query with a specific model 
-mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json --model ens
+# Retrieval: run a specific query with a specific model in parallel processing
+mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json --model ens --concurrent-jobs 5
 
 # Retrieval dry run (allocates paths but does not finalize saved entries)
 mamba run -n ecmwf-utils python -m src retrieval --dry-run
@@ -121,6 +124,7 @@ Retrieval options (summary):
 - `--query-path` : path to the query JSON
 - `--landing-path` : path to the folder where retrieved data files are saved (overrides `LANDING_PATH` env variable)
 - `--dry-run` : simulate retrievals without finalizing saved entries
+- `--concurrent-jobs` : maximum number of simultaneous API requests to execute. Use >1 for parallel execution (e.g., 5). Default is 1 (sequential).
 - `--verbose` : enable more verbose logging (not implemented yet)
 
 Preprocess options (WIP):
@@ -136,18 +140,21 @@ The CLI parameters override environment variables and evnironment variables over
 
 | Parameter           | YAML config file | Environment variable | CLI | Default |
 |----------------------|------------------|----------------------|-----|----------|
-| Model                | Y               | -                   | Y  | HRES |
-| Level                | Y               | -                   | Y  | surface (only one implemented) |
-| Variables            | Y               | -                   | -  | - |
-| Lookback (window)    | Y               | -                   | -  | - |
-| Step granularity     | Y               | -                   | -  | - |
+| Model                | Y               | -                   | Y  | `hres` |
+| Level                | Y               | -                   | Y  | `surface` (only one implemented) |
+| Retrieval Mode       | Y               | -                   | -  | `point` |
+| Variables            | Y               | -                   | -  | `[]` (empty list) |
+| Issue Hours          | Y               | -                   | -  | `[]` (empty list) |
+| Lookback (window)    | Y               | -                   | -  | `48` |
+| Step granularity     | Y               | -                   | -  | `1` |
 | Logging file path    | -               | Y                   | -  | `./logs/DEBUG.log` |
+| Concurrent Jobs      | -               | -                   | Y  | `1` |
 | Logging verbosity    | -               | -                   | Y  | `INFO` |
 | Query path           | -               | -                   | Y  | `./queries/default.json` |
 | Landing path         | -               | Y                   | Y  | `./data/landing/` |
 | Staging path         | -               | Y                   | Y  | `./data/staging/` |
 | Dry run              | -               | -                   | Y  | `False` |
-| …                    | …                | …                    | …   | … |
+| …                    | …               | …                   | …  | … |
 
 
 ## Query file
@@ -174,14 +181,16 @@ The query is parsed by `src/query.py` into `Query`, `PointCloud` and `TimeRange`
 Core steps performed by the code:
 
 1. Load configuration and parse the query JSON
-2. Compute a smallest bounding box for the given points and generate `area` and `grid` strings for ECMWF requests
-3. Build a base MARS request using `lookback` and `step-granularity`
-4. Iterate over the requested dates and issued times (currently `00` and `12`) and request forecasts
+2. Build a base MARS request using for instance `variables`, `lookback` and `step-granularity`
+3. Create requests for each issued time for the ECMWF API:
+    - If the retrieval mode is `grid`, compute the smallest bounding box for the given points and generate the appropriate `area` and `grid` request parameters
+    - If the retrieval mode is `point`, create one request per point in the query
+4. Iterate over the requested dates and issued hours (`issue_hours`) and request forecasts
 5. Allocate storage paths, write the NetCDF file returned by ECMWF, save the query JSON alongside it, and add an entry to `index.csv`
 
 Key modules:
 
-- `src/ecmwf_client.py` — builds MARS requests and executes them via `ecmwfapi`
+- `src/ecmwf_client` — manages the builder and executer of MARS requests
 - `src/storage.py` — manages allocation, finalization and the `index.csv`
 - `src/query.py` — query dataclasses and parsing
 
@@ -228,12 +237,6 @@ Adjust `config/logging.yml` to change handler levels or formats. The `--verbose`
 - Issued times currently use `00` and `12`. If 06/18 are required confirm availability and support in the `ecmwfapi` client
 - Add grid resolution to config if you want it configurable per-run
 
-## Tests
+## Warnings (dev only)
 
-If tests exist under `tests/` you can run them with pytest:
-
-```bash
-mamba run -n ecmwf-utils pytest -q
-```
-
-*WARNING: Tests are not implemented yet.*
+*WARNING: The preprocessing part might have been broken with the recent features to the retrieval pipeline.*
