@@ -19,7 +19,7 @@ class RetrievalMeta:
     level: str
     retrieval_mode: str
     variables: list[str]
-    issue_times: list[str]
+    issue_hours: list[str]
     lookback: int
     step_granularity: int
     issued: str
@@ -33,7 +33,7 @@ class RetrievalMeta:
             level=config.level,
             retrieval_mode=config.retrieval_mode,
             variables=config.variables,
-            issue_times=config.issue_times,
+            issue_hours=config.issue_hours,
             lookback=config.lookback,
             step_granularity=config.step_granularity,
             issued=request["date"] + f" {request['time']}:00",
@@ -45,7 +45,7 @@ class RetrievalMeta:
     def id(self) -> str:
         hash_input = (
             f"{self.model}_{self.level}_{self.retrieval_mode}_"
-            f"{','.join(self.variables)}_{','.join(self.issue_times)}_"
+            f"{','.join(self.variables)}_{','.join(self.issue_hours)}_"
             f"{self.lookback}_{self.step_granularity}_{self.issued}_"
             f"{self.area}_{self.grid}"
         )
@@ -130,6 +130,7 @@ class StorageManager:
             # Metadata (config)
             "model": ticket.meta.model,
             "level": ticket.meta.level,
+            "retrieval_mode": ticket.meta.retrieval_mode,
             "issued": ticket.meta.issued,
             "lookback_hours": ticket.meta.lookback,
             "step_granularity": ticket.meta.step_granularity,

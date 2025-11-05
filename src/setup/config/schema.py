@@ -26,7 +26,7 @@ class PipelineConfig:
     retrieval_mode: str = DEFAULT_RETRIEVAL_MODE
     query_path: Path = Path(DEFAULT_QUERY_PATH)
     variables: list[str] = field(default_factory=list)
-    issue_times: list[str] = field(default_factory=list)
+    issue_hours: list[str] = field(default_factory=list)
     lookback: int = DEFAULT_LOOKBACK
     step_granularity: int = DEFAULT_STEP_GRANULARITY
 

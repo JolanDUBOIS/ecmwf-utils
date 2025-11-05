@@ -76,10 +76,10 @@ class ECMWFRequestsBuilder:
             logger.debug(f"Building requests for datetime: {current_dt.date()}")
             request_date = current_dt.strftime("%Y-%m-%d")
             
-            for issued_time in self.config.issue_times:            
+            for issued_hour in self.config.issue_hours:            
                 for req in grid_requests:
-                    requests.append({**req, "date": request_date, "time": issued_time})
-            
+                    requests.append({**req, "date": request_date, "time": issued_hour})
+
             current_dt += timedelta(days=1)
 
         return requests
