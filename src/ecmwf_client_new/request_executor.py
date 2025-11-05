@@ -23,7 +23,7 @@ class ECMWFRequestsExecutor:
         self,
         request: dict,
         dry_run: bool = False
-    ) -> None:
+    ) -> bool:
         """ Retrieve forecast data for given points and date range. """
         logger.info(f"Retrieving forecast with request: {request}")
         meta = RetrievalMeta.from_request(request, self.config)
@@ -35,10 +35,13 @@ class ECMWFRequestsExecutor:
             if not dry_run:
                 logger.debug(f"Finalizing retrieval for {ticket.data_file_path}")
                 self.storage_manager.finalize(ticket, self.query, success=True)
+                return True
             else:
                 logger.info(f"Dry run enabled, skipping finalize for {ticket.data_file_path}")
                 self.storage_manager.finalize(ticket, self.query, success=False)
+                return True
         except Exception as e:
             logger.error(f"Error retrieving data for: {e}")
             logger.debug(traceback.format_exc())
             self.storage_manager.finalize(ticket, self.query, success=False)
+            return False

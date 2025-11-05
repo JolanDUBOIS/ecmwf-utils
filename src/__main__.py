@@ -17,7 +17,8 @@ if __name__ == "__main__":
         run_retrieval(
             config=config,
             dry_run=args.dry_run,
-            verbose=args.verbose
+            verbose=args.verbose,
+            max_concurrent_jobs=args.concurrent_jobs
         )
 
     elif args.command == "preprocess":
