@@ -7,7 +7,8 @@ from .defaults import (
     DEFAULT_LANDING_PATH, DEFAULT_STAGING_PATH,
     DEFAULT_MODEL, DEFAULT_LEVEL, ALLOWED_MODELS,
     DEFAULT_LOOKBACK, DEFAULT_STEP_GRANULARITY,
-    DEFAULT_RETRIEVAL_MODE, ALLOWED_RETRIEVAL_MODES
+    DEFAULT_RETRIEVAL_MODE, ALLOWED_RETRIEVAL_MODES,
+    DEFAULT_FORMAT, ALLOWED_FORMATS,
 )
 
 
@@ -24,6 +25,7 @@ class PipelineConfig:
 
     # Query settings
     retrieval_mode: str = DEFAULT_RETRIEVAL_MODE
+    format: str = DEFAULT_FORMAT
     query_path: Path = Path(DEFAULT_QUERY_PATH)
     variables: list[str] = field(default_factory=list)
     issue_hours: list[str] = field(default_factory=list)
@@ -48,3 +50,7 @@ class PipelineConfig:
         # Validate retrieval mode
         if self.retrieval_mode not in ALLOWED_RETRIEVAL_MODES:
             raise ValueError(f"Retrieval mode '{self.retrieval_mode}' is not allowed. Choose from {ALLOWED_RETRIEVAL_MODES}.")
+
+        # Validate format
+        if self.format not in ALLOWED_FORMATS:
+            raise ValueError(f"Format '{self.format}' is not allowed. Choose from {ALLOWED_FORMATS}.")

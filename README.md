@@ -43,9 +43,10 @@ To run any commands in this project, it is necessary to have ECMWF API credentia
 
 Configuration is read from `./config/config.yml`. Important settings are:
 
-- `model`: string — ECMWF model to query, e.g. `hres` or `ens`
-- `level`: string — the level to query (currently only surface supported)
+- `model`: string — ECMWF model to query (either `hres` or `ens`)
+- `level`: string — the level to query (currently only `surface` supported)
 - `retrieval_mode`: string — whether to retrieve a grid or a single point (either `grid` or `point`)
+- `format`: string — the format of the output files (either `netcdf` for `.nc` files or `grib2` for `.grib` files)
 - `variables`: list of string — ECMWF parameter codes to request (e.g. `['2t', '10u', '10v']`)
 - `issue_hours`: list of string — hours of the day to retrieve the issued forecasts (e.g. `["00", "12"]` for model `hres` or `["00", "06", "12", "18"]` for model `ens`)
 - `lookback`: integer — forecast window (hours)
@@ -57,6 +58,8 @@ Here is an example for `config/config.yml`:
 model: hres # str, either 'hres' or 'ens'
 level: surface # str, only surface is supported for now
 retrieval_mode: point # str, either 'point' or 'grid'
+
+format: grib2 # str, either 'grib2' or 'netcdf'
 
 variables: ['2t', '10u', '10v', 'msl', '2d', 'tp', 'sf', 'cp', 'lsp', 'sd'] 
 
@@ -143,6 +146,7 @@ The CLI parameters override environment variables and evnironment variables over
 | Model                | Y               | -                   | Y  | `hres` |
 | Level                | Y               | -                   | Y  | `surface` (only one implemented) |
 | Retrieval Mode       | Y               | -                   | -  | `point` |
+| Format               | Y               | -                   | -  | `netcdf` |
 | Variables            | Y               | -                   | -  | `[]` (empty list) |
 | Issue Hours          | Y               | -                   | -  | `[]` (empty list) |
 | Lookback (window)    | Y               | -                   | -  | `48` |
