@@ -37,7 +37,7 @@ class ECMWFRequestsBuilder:
         step_str = f"0/to/{self.config.lookback}/by/{self.config.step_granularity}"
         base = {
             "class": "od",
-            "format": "netcdf",
+            "format": self.config.format,
             "levtype": "sfc",
             "step": step_str,
             "param": self.config.variables

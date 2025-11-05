@@ -4,6 +4,9 @@ DEFAULT_LEVEL = "surface"
 DEFAULT_RETRIEVAL_MODE = "grid"
 ALLOWED_RETRIEVAL_MODES = ["point", "grid"]
 
+DEFAULT_FORMAT = "netcdf"
+ALLOWED_FORMATS = ["grib2", "netcdf"]
+
 DEFAULT_LOG_PATH = "./logs/DEBUG.log"
 DEFAULT_QUERY_PATH = "./queries/default.json"
 DEFAULT_LANDING_PATH = "./data/landing/"

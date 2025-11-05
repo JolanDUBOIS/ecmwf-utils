@@ -2,6 +2,8 @@ model: hres # str, either 'hres' or 'ens'
 level: surface # str, only surface is supported for now
 retrieval_mode: point # str, either 'point' or 'grid'
 
+format: netcdf # str, either 'grib2' or 'netcdf'
+
 # variables: ['2t', '10u', '10v', 'msl', 'tp', '2d']
 variables: ['2t', '10u', '10v', 'msl', '2d', 'tp', 'sf', 'cp', 'lsp', 'sd'] # Everything that can be retrieved is here
 

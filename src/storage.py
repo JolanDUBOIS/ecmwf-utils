@@ -18,6 +18,7 @@ class RetrievalMeta:
     model: str
     level: str
     retrieval_mode: str
+    format: str
     variables: list[str]
     issue_hours: list[str]
     lookback: int
@@ -32,6 +33,7 @@ class RetrievalMeta:
             model=config.model,
             level=config.level,
             retrieval_mode=config.retrieval_mode,
+            format=config.format,
             variables=config.variables,
             issue_hours=config.issue_hours,
             lookback=config.lookback,
@@ -79,8 +81,16 @@ class StorageManager:
 
         now_timestamp = int(time.time())
 
-        data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.nc"
-        # data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.grib"
+        if meta.format == "netcdf":
+            logger.debug("Allocating .nc data file")
+            data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.nc"
+        elif meta.format == "grib2":
+            logger.debug("Allocating .grib data file")
+            data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.grib"
+        else:
+            logger.error(f"Unsupported format: {meta.format}")
+            raise NotImplementedError(f"Format {meta.format} not supported")
+
         logger.debug(f"Allocating data storage at {data_file_path}")
         query_file_path = queries_subfolder / f"query_{query.id}.json"
 
