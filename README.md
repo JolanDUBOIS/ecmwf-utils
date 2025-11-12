@@ -70,6 +70,8 @@ step_granularity: 1 # int, in hours
 
 This configuration requests the HRES model at surface level with six specific variables, retrieves forecasts from the last 48 hours, and uses a 1-hour step interval.
 
+More on the **variables** can be found at the end of this README.
+
 ### Environment variables
 
 Three environment variables can be defined:
@@ -233,6 +235,42 @@ Adjust `config/logging.yml` to change handler levels or formats. The `--verbose`
 
 - If a retrieval fails an error is logged and partial files (if any) are removed by the storage manager
 - `--dry-run` exercises allocation and request construction but finalization into `index.csv` is skipped
+
+## ECMWF Weather Variables
+
+Here is a non exhaustif mapping of variables that can be retrieved from one or the other model.
+
+| Short Name | Long Name                                                | Field Code | Available in HRES | Available in ENS |
+|------------|----------------------------------------------------------|------------|-------------------|------------------|
+| `mx2t3`    | Maximum 2 m temperature (last 3 h)                       | 26.228     | Not tested        | Not tested       |
+| `mn2t3`    | Minimum 2 m temperature (last 3 h)                       | 27.228     | Not tested        | Not tested       |
+| `10fg3`    | Maximum 10 m wind gust (last 3 h)                        | 28.228     | Not tested        | Not tested       |
+| `10fg`     | Maximum 10 m wind gust                                   | 49.128     | Not tested        | Not tested       |
+| `mx2t6`    | Maximum 2 m temperature (last 6 h)                       | 121.128    | Not tested        | Not tested       |
+| `mn2t6`    | Minimum 2 m temperature (last 6 h)                       | 122.128    | Not tested        | Not tested       |
+| `10fg6`    | Maximum 10 m wind gust (last 6 h)                        | 123.128    | Not tested        | Not tested       |
+| `sd`       | Snow depth                                               | 141.228    | Yes               | Not tested       |
+| `sf`       | Snow fall                                                | 144.128    | Yes               | Not tested       |
+| `cp`       | Convective precipitation                                 | 143.128    | Yes               | Not tested       |
+| `lsp`      | Large scale precipitation                                | 142.128    | Yes               | Not tested       |
+| `msl`      | Mean sea level pressure                                  | 151.128    | Yes               | Not tested       |
+| `10u`      | 10-metre eastward wind component                         | 165.128    | Yes               | Yes              |
+| `10v`      | 10-metre northward wind component                        | 166.128    | Yes               | Yes              |
+| `2t`       | 2 metre temperature                                      | 167.128    | Yes               | Yes              |
+| `2d`       | 2 metre dewpoint temperature                             | 168.128    | Yes               | Yes              |
+| `mx2t`     | Maximum 2 m temperature (since previous post-processing) | 201.128    | Yes               | Not tested       |
+| `mn2t`     | Minimum 2 m temperature (since previous post-processing) | 202.128    | Yes               | Not tested       |
+| `tp`       | Total precipitation                                      | 228.128    | Yes               | Not tested       |
+| `100u`     | 100 m eastward wind component                            | 246.228    | Yes               | Yes              |
+| `100v`     | 100 m northward wind component                           | 247.228    | Yes               | Yes              |
+
+**Note:**
+
+The number following the dot (e.g., `.128`, `.228`) refers to the GRIB parameter table from which the variable originates. In most practical cases, the table number does not affect data retrieval, as the short name (e.g., `10u`, `tp`) uniquely identifies the field within ECMWF’s datasets. However, it can matter when working directly with raw GRIB files or older data streams, where identical parameter numbers may exist in different tables.
+
+**Disclaimer:**
+
+Availability of variables in the ENS dataset has not been fully verified. Some entries are marked as “Not tested” because ENS data requests can take several hours to complete. If you test any of these variables and confirm whether they work (or don’t), feel free to update this README so future users can benefit from your results.
 
 ## Developer notes & TODOs
 
