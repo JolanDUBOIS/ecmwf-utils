@@ -7,6 +7,7 @@ from ..query import Query
 from ..setup import PipelineConfig
 from ..storage import StorageManager, RetrievalMeta
 from ..setup.logging import ecmwf_log
+from .request_builder import ECMWFRequestsBuilder
 
 
 class ECMWFRequestsExecutor:
@@ -30,6 +31,18 @@ class ECMWFRequestsExecutor:
         ticket = self.storage_manager.allocate(meta, self.query)
 
         try:
+            # First, run a cost-check request and save its output to the ticket
+            try:
+                cost_req = ECMWFRequestsBuilder.make_cost_check_request(request)
+                logger.debug(f"Running cost check request: {cost_req}")
+                # Write the cost check response to the allocated cost_check_file_path
+                self.server.execute(cost_req, ticket.cost_check_file_path)
+                logger.info(f"Cost check saved to {ticket.cost_check_file_path}")
+            except Exception as ce:
+                # Log and continue to attempt the main retrieval
+                logger.error(f"Cost check failed: {ce}")
+                logger.debug(traceback.format_exc())
+
             logger.debug(f"ECMWF request: {request}")
             self.server.execute(request, ticket.data_file_path)
             if not dry_run:

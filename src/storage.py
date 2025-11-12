@@ -58,6 +58,7 @@ class RetrievalTicket:
     meta: RetrievalMeta
     data_file_path: Path
     query_file_path: Path
+    cost_check_file_path: Path
     now: int
 
     @property
@@ -76,8 +77,10 @@ class StorageManager:
         """ Allocate storage for a new retrieval based on its metadata. """
         data_subfolder = self.base_folder / "data"
         queries_subfolder = self.base_folder / "queries"
+        queries_cost_subfolder = self.base_folder / "queries_cost"
         data_subfolder.mkdir(parents=True, exist_ok=True)
         queries_subfolder.mkdir(parents=True, exist_ok=True)
+        queries_cost_subfolder.mkdir(parents=True, exist_ok=True)
 
         now_timestamp = int(time.time())
 
@@ -90,9 +93,10 @@ class StorageManager:
         else:
             logger.error(f"Unsupported format: {meta.format}")
             raise NotImplementedError(f"Format {meta.format} not supported")
-
         logger.debug(f"Allocating data storage at {data_file_path}")
+
         query_file_path = queries_subfolder / f"query_{query.id}.json"
+        cost_check_file_path = queries_cost_subfolder / f"ecmwf_cost_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.txt"
 
         if data_file_path.exists():
             logger.error(f"File {data_file_path} already exists. Allocation failed.")
@@ -104,6 +108,7 @@ class StorageManager:
             meta=meta,
             data_file_path=data_file_path,
             query_file_path=query_file_path,
+            cost_check_file_path=cost_check_file_path,
             now=now_timestamp
         )
 
@@ -131,6 +136,7 @@ class StorageManager:
             # File paths
             "data_file": str(ticket.data_file_path.relative_to(self.base_folder)),
             "query_file": str(ticket.query_file_path.relative_to(self.base_folder)),
+            "cost_check_file": str(ticket.cost_check_file_path.relative_to(self.base_folder)),
 
             # IDs
             "retrieval_id": ticket.meta.id,

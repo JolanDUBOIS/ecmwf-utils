@@ -111,3 +111,18 @@ class ECMWFRequestsBuilder:
         area_str = f"{lat_max}/{lon_min}/{lat_min}/{lon_max}"
         grid_str = f"{grid_res}/{grid_res}"
         return area_str, grid_str
+
+    @staticmethod
+    def make_cost_check_request(request: dict) -> str:
+        """ Create a cost check request string from a request dict. """
+        parts = [
+            f"{k} = {'/'.join(str(x) for x in v) if k == 'param' and isinstance(v, (list, tuple)) else v}"
+            for k, v in request.items()
+            if k != "format"
+        ]
+
+        cost_check_request = "list, \n"
+        cost_check_request += ", ".join(parts)
+        cost_check_request += ", output = cost"
+
+        return cost_check_request
