@@ -66,21 +66,48 @@ class ECMWFRequestsBuilder:
         logger.debug(f"Base request: {self._base_request}")
         return self._base_request
 
-    def build_requests(self) -> list[dict]:
+    # def build_requests(self) -> list[dict]:
+    #     """ TODO """
+    #     requests = []
+    #     grid_requests = self._build_grid_requests()
+
+    #     current_dt = self.query.time_range.start
+    #     while current_dt <= self.query.time_range.end:
+    #         logger.debug(f"Building requests for datetime: {current_dt.date()}")
+    #         request_date = current_dt.strftime("%Y-%m-%d")
+            
+    #         for issued_hour in self.config.issue_hours:            
+    #             for req in grid_requests:
+    #                 requests.append({**req, "date": request_date, "time": issued_hour})
+
+    #         current_dt += timedelta(days=1)
+
+    #     return requests
+
+    def build_requests(self, max_days_per_request: int = 3) -> list[dict]:
         """ TODO """
-        requests = []
+        if max_days_per_request < 1:
+            raise ValueError("max_days_per_request must be >= 1")
+
+        requests: list[dict] = []
         grid_requests = self._build_grid_requests()
 
-        current_dt = self.query.time_range.start
-        while current_dt <= self.query.time_range.end:
-            logger.debug(f"Building requests for datetime: {current_dt.date()}")
-            request_date = current_dt.strftime("%Y-%m-%d")
-            
-            for issued_hour in self.config.issue_hours:            
-                for req in grid_requests:
-                    requests.append({**req, "date": request_date, "time": issued_hour})
+        start = self.query.time_range.start
+        end = self.query.time_range.end
+        if start > end:
+            return requests
 
-            current_dt += timedelta(days=1)
+        time_range = "/".join(self.config.issue_hours)
+
+        current = start
+        while current <= end:
+            chunk_end = min(end, current + timedelta(days=max_days_per_request - 1))
+            date_range = f"{current.strftime('%Y-%m-%d')}/to/{chunk_end.strftime('%Y-%m-%d')}"
+
+            for req in grid_requests:
+                requests.append({**req, "date": date_range, "time": time_range})
+
+            current = chunk_end + timedelta(days=1)
 
         return requests
 

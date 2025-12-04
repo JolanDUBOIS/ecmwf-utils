@@ -96,7 +96,7 @@ class StorageManager:
         logger.debug(f"Allocating data storage at {data_file_path}")
 
         query_file_path = queries_subfolder / f"query_{query.id}.json"
-        cost_check_file_path = queries_cost_subfolder / f"ecmwf_cost_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.txt"
+        cost_check_file_path = queries_cost_subfolder / f"ecmwf_cost_{meta.model}_{meta.level}_{meta.issued.replace('/', '_')}_{now_timestamp}.txt"
 
         if data_file_path.exists():
             logger.error(f"File {data_file_path} already exists. Allocation failed.")

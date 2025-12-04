@@ -16,9 +16,7 @@ if __name__ == "__main__":
         from .pipeline import run_retrieval
         run_retrieval(
             config=config,
-            dry_run=args.dry_run,
-            verbose=args.verbose,
-            max_concurrent_jobs=args.concurrent_jobs
+            **vars(args)
         )
 
     elif args.command == "preprocess":

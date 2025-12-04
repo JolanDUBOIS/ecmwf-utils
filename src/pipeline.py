@@ -7,9 +7,8 @@ from .ecmwf_client_new import ECMWFRequestsExecutor, ECMWFRequestsBuilder
 
 def run_retrieval(
     config: PipelineConfig,
-    dry_run: bool = False,
-    verbose: bool = False,  # Not yet implemented
-    max_concurrent_jobs: int = 1
+    concurrent_jobs: int = 1,
+    **kwargs
 ):
     logger.info("Starting pipeline...")
 
@@ -19,12 +18,12 @@ def run_retrieval(
 
     requests = builder.build_requests()
 
-    if max_concurrent_jobs > 1:
-        logger.info(f"Running with up to {max_concurrent_jobs} concurrent jobs...")
+    if concurrent_jobs > 1:
+        logger.info(f"Running with up to {concurrent_jobs} concurrent jobs...")
         
-        with concurrent.futures.ThreadPoolExecutor(max_workers=max_concurrent_jobs) as thread_pool:
+        with concurrent.futures.ThreadPoolExecutor(max_workers=concurrent_jobs) as thread_pool:
             future_to_request = {
-                thread_pool.submit(executor.get_forecast, req, dry_run): req 
+                thread_pool.submit(executor.get_forecast, req, **kwargs): req 
                 for req in requests
             }
 
@@ -46,7 +45,7 @@ def run_retrieval(
         for request in requests:
             executor.get_forecast(
                 request=request,
-                dry_run=dry_run
+                **kwargs
             )
 
     logger.info("Pipeline finished.")

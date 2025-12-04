@@ -35,6 +35,16 @@ def parse_args() -> argparse.Namespace:
         help="Perform a dry run without saving any files"
     )
     retrieval_parser.add_argument(
+        "--skip-cost",
+        action="store_true",
+        help="Skip the cost query step."
+    )
+    retrieval_parser.add_argument(
+        "--skip-query",
+        action="store_true",
+        help="Skip the actual data retrieval query (no save will occur)."
+    )
+    retrieval_parser.add_argument(
         "--concurrent-jobs",
         type=int,
         default=1,
