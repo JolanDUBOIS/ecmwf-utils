@@ -112,8 +112,14 @@ mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.
 # Retrieval: run a specific query with a specific model in parallel processing
 mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json --model ens --concurrent-jobs 5
 
-# Retrieval dry run (allocates paths but does not finalize saved entries)
+# Retrieval: dry run (performs queries but does not save any files)
 mamba run -n ecmwf-utils python -m src retrieval --dry-run
+
+# Retrieval: cost-only mode (runs only cost query, no data query or save)
+mamba run -n ecmwf-utils python -m src retrieval --skip-query
+
+# Retrieval: skip cost estimation (directly runs data queries)
+mamba run -n ecmwf-utils python -m src retrieval --skip-cost
 
 # Preprocess (using env variables)
 mamba run -n ecmwf-utils python -m src preprocess
@@ -129,6 +135,8 @@ Retrieval options (summary):
 - `--query-path` : path to the query JSON
 - `--landing-path` : path to the folder where retrieved data files are saved (overrides `LANDING_PATH` env variable)
 - `--dry-run` : simulate retrievals without finalizing saved entries
+- `--skip-cost`: skip the cost query step entirely.
+- `--skip-query`: skip the actual data retrieval (no save occurs, even if `--dry-run` is not set).
 - `--concurrent-jobs` : maximum number of simultaneous API requests to execute. Use >1 for parallel execution (e.g., 5). Default is 1 (sequential).
 - `--verbose` : enable more verbose logging (not implemented yet)
 
@@ -143,25 +151,24 @@ CLI parsing lives in `src/setup/cli.py`.
 
 The CLI parameters override environment variables and evnironment variables override YAML configuration values. The table below is a summary of all configuration variable the user has access to:
 
-| Parameter           | YAML config file | Environment variable | CLI | Default |
-|----------------------|------------------|----------------------|-----|----------|
-| Model                | Y               | -                   | Y  | `hres` |
-| Level                | Y               | -                   | Y  | `surface` (only one implemented) |
-| Retrieval Mode       | Y               | -                   | -  | `point` |
-| Format               | Y               | -                   | -  | `netcdf` |
-| Variables            | Y               | -                   | -  | `[]` (empty list) |
-| Issue Hours          | Y               | -                   | -  | `[]` (empty list) |
-| Lookback (window)    | Y               | -                   | -  | `48` |
-| Step granularity     | Y               | -                   | -  | `1` |
-| Logging file path    | -               | Y                   | -  | `./logs/DEBUG.log` |
-| Concurrent Jobs      | -               | -                   | Y  | `1` |
-| Logging verbosity    | -               | -                   | Y  | `INFO` |
-| Query path           | -               | -                   | Y  | `./queries/default.json` |
-| Landing path         | -               | Y                   | Y  | `./data/landing/` |
-| Staging path         | -               | Y                   | Y  | `./data/staging/` |
-| Dry run              | -               | -                   | Y  | `False` |
-| …                    | …               | …                   | …  | … |
-
+| Parameter            | YAML config file | Environment variable | CLI | Default                          |
+|----------------------|------------------|----------------------|-----|----------------------------------|
+| Model                | Y                | -                    | Y   | `hres`                           |
+| Level                | Y                | -                    | Y   | `surface` (only one implemented) |
+| Retrieval Mode       | Y                | -                    | -   | `point`                          |
+| Format               | Y                | -                    | -   | `netcdf`                         |
+| Variables            | Y                | -                    | -   | `[]` (empty list)                |
+| Issue Hours          | Y                | -                    | -   | `[]` (empty list)                |
+| Lookback (window)    | Y                | -                    | -   | `48`                             |
+| Step granularity     | Y                | -                    | -   | `1`                              |
+| Logging file path    | -                | Y                    | -   | `./logs/DEBUG.log`               |
+| Concurrent Jobs      | -                | -                    | Y   | `1`                              |
+| Logging verbosity    | -                | -                    | Y   | `INFO`                           |
+| Query path           | -                | -                    | Y   | `./queries/default.json`         |
+| Landing path         | -                | Y                    | Y   | `./data/landing/`                |
+| Staging path         | -                | Y                    | Y   | `./data/staging/`                |
+| Dry run              | -                | -                    | Y   | `False`                          |
+| …                    | …                | …                    | …   | …                                |
 
 ## Query file
 
