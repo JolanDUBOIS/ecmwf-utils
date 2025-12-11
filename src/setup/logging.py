@@ -1,20 +1,27 @@
 import logging
 import logging.config
+from datetime import datetime
 from pathlib import Path
 
 import yaml
 
 
-def setup_logging(config_file: Path, logging_path: Path | None = None) -> None:
-    """ Set up logging configuration from a YAML file, with optional log file override. """
+def setup_logging(config_file: Path, logging_path: Path | None = None, timestamped: bool = True) -> None:
+    """Set up logging configuration from a YAML file, optionally overriding log file paths.
+    
+    If timestamped=True, appends a timestamp after the .log extension.
+    """
     with config_file.open("r") as f:
         config = yaml.safe_load(f)
 
-    # Override before applying configuration
     if logging_path:
         for handler in config.get("handlers", {}).values():
             if handler.get("class") == "logging.FileHandler":
-                handler["filename"] = str(logging_path)
+                filename = Path(logging_path)
+                if timestamped:
+                    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+                    filename = filename.with_name(f"{filename.name}.{ts}")
+                handler["filename"] = str(filename)
 
     logging.config.dictConfig(config)
 
