@@ -86,17 +86,17 @@ class StorageManager:
 
         if meta.format == "netcdf":
             logger.debug("Allocating .nc data file")
-            data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.nc"
+            data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued.replace('/', '_')}_{now_timestamp}.nc"
         elif meta.format == "grib2":
             logger.debug("Allocating .grib data file")
-            data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.grib"
+            data_file_path = data_subfolder / f"ecmwf_{meta.model}_{meta.level}_{meta.issued.replace('/', '_')}_{now_timestamp}.grib"
         else:
             logger.error(f"Unsupported format: {meta.format}")
             raise NotImplementedError(f"Format {meta.format} not supported")
         logger.debug(f"Allocating data storage at {data_file_path}")
 
         query_file_path = queries_subfolder / f"query_{query.id}.json"
-        cost_check_file_path = queries_cost_subfolder / f"ecmwf_cost_{meta.model}_{meta.level}_{meta.issued}_{now_timestamp}.txt"
+        cost_check_file_path = queries_cost_subfolder / f"ecmwf_cost_{meta.model}_{meta.level}_{meta.issued.replace('/', '_')}_{now_timestamp}.txt"
 
         if data_file_path.exists():
             logger.error(f"File {data_file_path} already exists. Allocation failed.")

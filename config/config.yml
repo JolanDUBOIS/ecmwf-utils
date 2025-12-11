@@ -1,6 +1,7 @@
 model: ens # str, either 'hres' or 'ens'
 level: surface # str, only surface is supported for now
 retrieval_mode: point # str, either 'point' or 'grid'
+batch_issue: 10 # bool or int, if False, process each issue hour separately; if int, process that many issue day at once
 
 format: grib2 # str, either 'grib2' or 'netcdf'
 
