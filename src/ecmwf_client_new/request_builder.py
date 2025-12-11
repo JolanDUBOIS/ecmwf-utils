@@ -66,25 +66,33 @@ class ECMWFRequestsBuilder:
         logger.debug(f"Base request: {self._base_request}")
         return self._base_request
 
-    # def build_requests(self) -> list[dict]:
-    #     """ TODO """
-    #     requests = []
-    #     grid_requests = self._build_grid_requests()
+    def build_requests(self) -> list[dict]:
+        """ Build ECMWF requests based on the configuration and query. """
+        if not self.config.batch_issue:
+            return self.build_requests_single_issue()
+        else:
+            max_days = self.config.batch_issue
+            return self.build_requests_bulk_issue(max_days_per_request=max_days)
 
-    #     current_dt = self.query.time_range.start
-    #     while current_dt <= self.query.time_range.end:
-    #         logger.debug(f"Building requests for datetime: {current_dt.date()}")
-    #         request_date = current_dt.strftime("%Y-%m-%d")
+    def build_requests_single_issue(self) -> list[dict]:
+        """ TODO """
+        requests = []
+        grid_requests = self._build_grid_requests()
+
+        current_dt = self.query.time_range.start
+        while current_dt <= self.query.time_range.end:
+            logger.debug(f"Building requests for datetime: {current_dt.date()}")
+            request_date = current_dt.strftime("%Y-%m-%d")
             
-    #         for issued_hour in self.config.issue_hours:            
-    #             for req in grid_requests:
-    #                 requests.append({**req, "date": request_date, "time": issued_hour})
+            for issued_hour in self.config.issue_hours:            
+                for req in grid_requests:
+                    requests.append({**req, "date": request_date, "time": issued_hour})
 
-    #         current_dt += timedelta(days=1)
+            current_dt += timedelta(days=1)
 
-    #     return requests
+        return requests
 
-    def build_requests(self, max_days_per_request: int = 3) -> list[dict]:
+    def build_requests_bulk_issue(self, max_days_per_request: int = 3) -> list[dict]:
         """ TODO """
         if max_days_per_request < 1:
             raise ValueError("max_days_per_request must be >= 1")

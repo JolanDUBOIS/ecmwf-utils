@@ -25,6 +25,7 @@ class PipelineConfig:
 
     # Query settings
     retrieval_mode: str = DEFAULT_RETRIEVAL_MODE
+    batch_issue: bool | int = False
     format: str = DEFAULT_FORMAT
     query_path: Path = Path(DEFAULT_QUERY_PATH)
     variables: list[str] = field(default_factory=list)
@@ -50,6 +51,10 @@ class PipelineConfig:
         # Validate retrieval mode
         if self.retrieval_mode not in ALLOWED_RETRIEVAL_MODES:
             raise ValueError(f"Retrieval mode '{self.retrieval_mode}' is not allowed. Choose from {ALLOWED_RETRIEVAL_MODES}.")
+
+        # Validate batch_issue
+        if (isinstance(self.batch_issue, bool) and self.batch_issue) or not isinstance(self.batch_issue, (bool, int)):
+            raise ValueError("batch_issue must be either False or an integer specifying the number of issue days to process at once.")
 
         # Validate format
         if self.format not in ALLOWED_FORMATS:
