@@ -15,9 +15,11 @@ from .setup import PipelineConfig
 @dataclass
 class RetrievalMeta:
     # Configuration parameters
+    config_name: str
     model: str
     level: str
     retrieval_mode: str
+    batch_issue: bool
     format: str
     variables: list[str]
     issue_hours: list[str]
@@ -30,9 +32,11 @@ class RetrievalMeta:
     @classmethod
     def from_request(cls, request: dict, config: PipelineConfig) -> RetrievalMeta:
         return cls(
+            config_name=config.name,
             model=config.model,
             level=config.level,
             retrieval_mode=config.retrieval_mode,
+            batch_issue=config.batch_issue,
             format=config.format,
             variables=config.variables,
             issue_hours=config.issue_hours,
@@ -142,11 +146,15 @@ class StorageManager:
             "retrieval_id": ticket.meta.id,
             "entry_id": ticket.id,
             "query_id": query.id,
+            "query_name": query.name,
 
             # Metadata (config)
+            "config_name": ticket.meta.config_name,
             "model": ticket.meta.model,
             "level": ticket.meta.level,
             "retrieval_mode": ticket.meta.retrieval_mode,
+            "batch_issue": ticket.meta.batch_issue,
+            "format": ticket.meta.format,
             "issued": ticket.meta.issued,
             "lookback_hours": ticket.meta.lookback,
             "step_granularity": ticket.meta.step_granularity,

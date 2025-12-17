@@ -29,6 +29,11 @@ def parse_args() -> argparse.Namespace:
         help="Path to the folder where retrieved data files will be saved"
     )
     retrieval_parser.add_argument(
+        "--config-path",
+        type=str,
+        help="Path to the YAML configuration file"
+    )
+    retrieval_parser.add_argument(
         "--dry-run",
         action="store_true",
         default=False,

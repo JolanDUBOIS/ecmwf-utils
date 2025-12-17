@@ -14,12 +14,15 @@ from .defaults import (
 
 @dataclass
 class PipelineConfig:
+    # Config name
+    name: str = "default"
+
     # Pipeline settings
     model: str = DEFAULT_MODEL
     level: str = DEFAULT_LEVEL
     landing_path: Path = Path(DEFAULT_LANDING_PATH)
     staging_path: Path = Path(DEFAULT_STAGING_PATH)
-    
+
     # Logging settings
     logging_path: Path = Path(DEFAULT_LOG_PATH)
 

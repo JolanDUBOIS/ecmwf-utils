@@ -41,6 +41,7 @@ class PointCloud:
 class Query:
     time_range: TimeRange
     points: PointCloud
+    name: str = ""
 
     @property
     def id(self) -> str:
@@ -62,7 +63,7 @@ class Query:
         )
         pc = PointCloud.from_list(data["points"])
         
-        return Query(time_range=tr, points=pc)
+        return Query(time_range=tr, points=pc, name=data.get("name", ""))
 
     def to_dict(self) -> dict:
         return {
