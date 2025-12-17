@@ -43,9 +43,13 @@ To run any commands in this project, it is necessary to have ECMWF API credentia
 
 Configuration is read from `./config/config.yml`. Important settings are:
 
+- `name`: string — optional identifier for the configuration, stored in the retrieval index for traceability. Defaults to `default` if not provided.
 - `model`: string — ECMWF model to query (either `hres` or `ens`)
 - `level`: string — the level to query (currently only `surface` supported)
 - `retrieval_mode`: string — whether to retrieve a grid or a single point (either `grid` or `point`)
+- `batch_issue`: bool or int — controls batching of issue datetimes during retrieval.
+  - If `False`, each issue datetime is queried independently (one request per issue).
+  - If an integer `N > 0`, issue datetimes are grouped into batches spanning `N` consecutive days, and each batch is retrieved in a single request. This reduces the number of API calls at the cost of larger individual requests.
 - `format`: string — the format of the output files (either `netcdf` for `.nc` files or `grib2` for `.grib` files)
 - `variables`: list of string — ECMWF parameter codes to request (e.g. `['2t', '10u', '10v']`)
 - `issue_hours`: list of string — hours of the day to retrieve the issued forecasts (e.g. `["00", "12"]` for model `hres` or `["00", "06", "12", "18"]` for model `ens`)
@@ -55,9 +59,12 @@ Configuration is read from `./config/config.yml`. Important settings are:
 Here is an example for `config/config.yml`:
 
 ```yaml
+name: default
+
 model: hres # str, either 'hres' or 'ens'
 level: surface # str, only surface is supported for now
 retrieval_mode: point # str, either 'point' or 'grid'
+batch_issue: 10 # bool or int, if False, process each issue hour separately; if int, process that many issue day at once
 
 format: grib2 # str, either 'grib2' or 'netcdf'
 
@@ -109,6 +116,9 @@ mamba run -n ecmwf-utils python -m src retrieval
 # Retrieval: run a specific query
 mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json
 
+# Retrieval: run a specific query & a specific config file
+mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json --config-path ./config/config_example.yml
+
 # Retrieval: run a specific query with a specific model in parallel processing
 mamba run -n ecmwf-utils python -m src retrieval --query-path ./queries/example.json --model ens --concurrent-jobs 5
 
@@ -134,6 +144,7 @@ Retrieval options (summary):
 - `--level` : level type (only `surface` is implemented)
 - `--query-path` : path to the query JSON
 - `--landing-path` : path to the folder where retrieved data files are saved (overrides `LANDING_PATH` env variable)
+- `--config-path` : path to the configuration file to use. Overrides the default config path (`./config/config.yml`).
 - `--dry-run` : simulate retrievals without finalizing saved entries
 - `--skip-cost`: skip the cost query step entirely.
 - `--skip-query`: skip the actual data retrieval (no save occurs, even if `--dry-run` is not set).
@@ -151,31 +162,33 @@ CLI parsing lives in `src/setup/cli.py`.
 
 The CLI parameters override environment variables and evnironment variables override YAML configuration values. The table below is a summary of all configuration variable the user has access to:
 
-| Parameter            | YAML config file | Environment variable | CLI | Default                          |
-|----------------------|------------------|----------------------|-----|----------------------------------|
-| Model                | Y                | -                    | Y   | `hres`                           |
-| Level                | Y                | -                    | Y   | `surface` (only one implemented) |
-| Retrieval Mode       | Y                | -                    | -   | `point`                          |
-| Format               | Y                | -                    | -   | `netcdf`                         |
-| Variables            | Y                | -                    | -   | `[]` (empty list)                |
-| Issue Hours          | Y                | -                    | -   | `[]` (empty list)                |
-| Lookback (window)    | Y                | -                    | -   | `48`                             |
-| Step granularity     | Y                | -                    | -   | `1`                              |
-| Logging file path    | -                | Y                    | -   | `./logs/DEBUG.log`               |
-| Concurrent Jobs      | -                | -                    | Y   | `1`                              |
-| Logging verbosity    | -                | -                    | Y   | `INFO`                           |
-| Query path           | -                | -                    | Y   | `./queries/default.json`         |
-| Landing path         | -                | Y                    | Y   | `./data/landing/`                |
-| Staging path         | -                | Y                    | Y   | `./data/staging/`                |
-| Dry run              | -                | -                    | Y   | `False`                          |
-| …                    | …                | …                    | …   | …                                |
+| Parameter            | YAML config file | Environment variable | CLI | Default                          | Type        |
+|----------------------|------------------|----------------------|-----|----------------------------------|-------------|
+| Model                | Y                | -                    | Y   | `hres`                           | str         |
+| Level                | Y                | -                    | Y   | `surface` (only one implemented) | str         |
+| Retrieval Mode       | Y                | -                    | -   | `point`                          | str         |
+| Batch Issue          | Y                | -                    | -   | `False`                          | bool or int |
+| Format               | Y                | -                    | -   | `netcdf`                         | str         |
+| Variables            | Y                | -                    | -   | `[]` (empty list)                | list of str |
+| Issue Hours          | Y                | -                    | -   | `[]` (empty list)                | list of str |
+| Lookback (window)    | Y                | -                    | -   | `48`                             | int         |
+| Step granularity     | Y                | -                    | -   | `1`                              | int         |
+| Logging file path    | -                | Y                    | -   | `./logs/DEBUG.log`               | Path        |
+| Concurrent Jobs      | -                | -                    | Y   | `1`                              | int         |
+| Logging verbosity    | -                | -                    | Y   | `INFO`                           | str         |
+| Query path           | -                | -                    | Y   | `./queries/default.json`         | Path        |
+| Landing path         | -                | Y                    | Y   | `./data/landing/`                | Path        |
+| Staging path         | -                | Y                    | Y   | `./data/staging/`                | Path        |
+| Dry run              | -                | -                    | Y   | `False`                          | bool        |
+| …                    | …                | …                    | …   | …                                | …           |
 
 ## Query file
 
-A query is a JSON file with a `time_range` (ISO 8601 strings) and a `points` array of `[lat, lon]` pairs. Example:
+A query is a JSON file with a `time_range` (ISO 8601 strings) and a `points` array of `[lat, lon]` pairs (and an optional `name`, with default empty str). Example:
 
 ```json
 {
+  "name": "default",
   "time_range": {
     "start": "2016-01-01T00:00:00Z",
     "end": "2016-01-15T00:00:00Z"
