@@ -8,9 +8,9 @@ from dotenv import load_dotenv
 from .schema import PipelineConfig
 
 
-def load_config(path: str | Path, args: argparse.Namespace = None) -> PipelineConfig:
+def load_config(args: argparse.Namespace = None) -> PipelineConfig:
     # Load YAML configuration
-    path = Path(path)
+    path = Path(args.config_path) if args and args.config_path else Path(__file__).parent.parent.parent.parent / "config" / "config.yml"
     with path.open("r") as f:
         config_dict = yaml.safe_load(f)
 

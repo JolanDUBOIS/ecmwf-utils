@@ -10,7 +10,7 @@ def run_retrieval(
     concurrent_jobs: int = 1,
     **kwargs
 ):
-    logger.info("Starting pipeline...")
+    logger.info(f"Starting pipeline with config file '{config.name}' and query file '{config.name}'")
 
     query = Query.from_json(config.query_path)
     builder = ECMWFRequestsBuilder(config, query)

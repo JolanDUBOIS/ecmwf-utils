@@ -1,3 +1,5 @@
+name: default
+
 model: ens # str, either 'hres' or 'ens'
 level: surface # str, only surface is supported for now
 retrieval_mode: point # str, either 'point' or 'grid'
