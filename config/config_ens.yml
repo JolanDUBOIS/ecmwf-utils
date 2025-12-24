@@ -2,35 +2,36 @@ name: default
 
 model: ens # str, either 'hres' or 'ens'
 level: surface # str, only surface is supported for now
-retrieval_mode: point # str, either 'point' or 'grid'
+retrieval_mode: grid # str, either 'point' or 'grid'
 batch_issue: 10 # bool or int, if False, process each issue hour separately; if int, process that many issue day at once
 
 format: grib2 # str, either 'grib2' or 'netcdf'
 
-variables: [
-  'mx2t3',
-  'mn2t3',
-  '10fg3',
-  '10fg',
-  'mx2t6',
-  'mn2t6',
-  '10fg6',
-  'sd',
-  'sf',
-  'cp',
-  'lsp',
-  'msl',
-  '10u',
-  '10v',
-  '2t',
-  '2d',
-  'mx2t',
-  'mn2t',
-  'tp',
-  '100u',
-  '100v'
-]
+variables:
+  [
+    "mx2t3",
+    "mn2t3",
+    "10fg3",
+    "10fg",
+    "mx2t6",
+    "mn2t6",
+    "10fg6",
+    "sd",
+    "sf",
+    "cp",
+    "lsp",
+    "msl",
+    "10u",
+    "10v",
+    "2t",
+    "2d",
+    "mx2t",
+    "mn2t",
+    "tp",
+    "100u",
+    "100v",
+  ]
 
 issue_hours: ["00", "06", "12", "18"] # list of str, e.g. ["00", "06", "12", "18"] for 4 times a day
 lookback: 72 # int, in hours, e.g. 48 means forecasts from the last 48 hours
-step_granularity: 1 # int, in hours, e.g. 1 means every hour, 3 means every 3 hours
+step_granularity: 3 # int, in hours, e.g. 1 means every hour, 3 means every 3 hours
