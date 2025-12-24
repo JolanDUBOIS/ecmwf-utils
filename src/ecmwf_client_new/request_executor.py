@@ -8,7 +8,9 @@ from ..setup import PipelineConfig
 from ..storage import StorageManager, RetrievalMeta, RetrievalTicket
 from ..setup.logging import ecmwf_log
 from .request_builder import ECMWFRequestsBuilder
+from dotenv import load_dotenv
 
+load_dotenv()
 
 class ECMWFRequestsExecutor:
     """ TODO """
