@@ -124,11 +124,7 @@ export LANDING_PATH="./data/landing/"
 export STAGING_PATH="./data/staging/main.csv"
 ```
 
-If you're using a `.env` file, don't forget to run:
-
-```bash
-source .env
-```
+If you're using a `.env` file, keep it in the root of this repository as best practice.
 
 ### CLI / Usage
 
