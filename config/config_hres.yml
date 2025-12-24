@@ -32,6 +32,6 @@ variables:
     "100v",
   ]
 
-issue_hours: ["00", "06", "12", "18"] # list of str, e.g. ["00", "06", "12", "18"] for 4 times a day
+issue_hours: ["00", "12"] # list of str, e.g. ["00", "06", "12", "18"] for 4 times a day
 lookback: 72 # int, in hours, e.g. 48 means forecasts from the last 48 hours
 step_granularity: 1 # int, in hours, e.g. 1 means every hour, 3 means every 3 hours
