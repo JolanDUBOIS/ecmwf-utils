@@ -3,6 +3,7 @@
 A small utility to retrieve ECMWF forecast data for lists of geographic points and time ranges, and to store the results as NetCDF (.nc) files together with metadata.
 
 Key features
+
 - Build and execute ECMWF requests for a set of coordinates and a time range
 - Compute the smallest bounding box for requested points and choose an appropriate grid resolution
 - Save retrieved NetCDF files and store retrieval metadata and queries in a simple index (index.csv)
@@ -35,7 +36,35 @@ mamba env create -n ecmwf-utils -f environment.yml
 
 ### ECMWF Credentials
 
-To run any commands in this project, it is necessary to have ECMWF API credentials. They have to be stored at the location `~/.ecmwfapirc` so `ecmwfapi` can authenticate. If you use environment variables or a different credentials file, document that mapping here.
+To run any commands in this project, it is necessary to have ECMWF API credentials. These can be set as environment variables or they can be set in an `.ecmwfapirc` file. The logic is as follows:
+
+- Step 1: the environment is checked for variables `ECMWF_API_KEY`,
+  `ECMWF_API_URL`, `ECMWF_API_EMAIL`. To use add these in a `.env` file within project root.
+
+  - If all found, and not empty, return their values in Python tuple
+    format.
+  - If only some found, and not empty, assume an incomplete API key, and
+    raise APIKeyFetchError.
+  - If none found, or found but empty, assume no API key available in the
+    environment, and continue to the next step.
+
+- Step 2: the environment is checked for variable `ECMWF_API_RC_FILE`, meant
+  to point to a user defined API key file. To use add this in a `.env` file within project root.
+
+  - If found, but pointing to a file not found, raise APIKeyNotFoundError.
+  - If found, and the file it points to exists, but cannot not be read, or
+    contains an invalid API key, raise APIKeyFetchError.
+  - If found, and the file it points to exists, can be read, and contains
+    a valid API key, return the API key in Python tuple format.
+  - If not found, or empty, assume no user provided API key file and
+    continue to the next step.
+
+- Step 3: try the default `~/.ecmwfapirc` file. To use add file within home folder.
+
+  - Same as step 2, except for when `~/.ecmwfapirc` is not found, where we
+    continue to the next step.
+
+- Step 4: No API key found, so fall back to anonymous access. This will fail since we request MARS which is access controlled.
 
 ## Configuration
 
@@ -68,7 +97,7 @@ batch_issue: 10 # bool or int, if False, process each issue hour separately; if 
 
 format: grib2 # str, either 'grib2' or 'netcdf'
 
-variables: ['2t', '10u', '10v', 'msl', '2d', 'tp', 'sf', 'cp', 'lsp', 'sd'] 
+variables: ["2t", "10u", "10v", "msl", "2d", "tp", "sf", "cp", "lsp", "sd"]
 
 issue_hours: ["00", "06", "12", "18"]
 lookback: 48 # int, in hours
@@ -82,6 +111,7 @@ More on the **variables** can be found at the end of this README.
 ### Environment variables
 
 Three environment variables can be defined:
+
 - `LOG_FILE_PATH`: override the default value for the log file (DEBUG level)
 - `LANDING_PATH`: path to the landing directory
 - `STAGING_PATH`: path to the staging file path (CSV file, parquet accepted in a future update)
@@ -162,25 +192,25 @@ CLI parsing lives in `src/setup/cli.py`.
 
 The CLI parameters override environment variables and evnironment variables override YAML configuration values. The table below is a summary of all configuration variable the user has access to:
 
-| Parameter            | YAML config file | Environment variable | CLI | Default                          | Type        |
-|----------------------|------------------|----------------------|-----|----------------------------------|-------------|
-| Model                | Y                | -                    | Y   | `hres`                           | str         |
-| Level                | Y                | -                    | Y   | `surface` (only one implemented) | str         |
-| Retrieval Mode       | Y                | -                    | -   | `point`                          | str         |
-| Batch Issue          | Y                | -                    | -   | `False`                          | bool or int |
-| Format               | Y                | -                    | -   | `netcdf`                         | str         |
-| Variables            | Y                | -                    | -   | `[]` (empty list)                | list of str |
-| Issue Hours          | Y                | -                    | -   | `[]` (empty list)                | list of str |
-| Lookback (window)    | Y                | -                    | -   | `48`                             | int         |
-| Step granularity     | Y                | -                    | -   | `1`                              | int         |
-| Logging file path    | -                | Y                    | -   | `./logs/DEBUG.log`               | Path        |
-| Concurrent Jobs      | -                | -                    | Y   | `1`                              | int         |
-| Logging verbosity    | -                | -                    | Y   | `INFO`                           | str         |
-| Query path           | -                | -                    | Y   | `./queries/default.json`         | Path        |
-| Landing path         | -                | Y                    | Y   | `./data/landing/`                | Path        |
-| Staging path         | -                | Y                    | Y   | `./data/staging/`                | Path        |
-| Dry run              | -                | -                    | Y   | `False`                          | bool        |
-| …                    | …                | …                    | …   | …                                | …           |
+| Parameter         | YAML config file | Environment variable | CLI | Default                          | Type        |
+| ----------------- | ---------------- | -------------------- | --- | -------------------------------- | ----------- |
+| Model             | Y                | -                    | Y   | `hres`                           | str         |
+| Level             | Y                | -                    | Y   | `surface` (only one implemented) | str         |
+| Retrieval Mode    | Y                | -                    | -   | `point`                          | str         |
+| Batch Issue       | Y                | -                    | -   | `False`                          | bool or int |
+| Format            | Y                | -                    | -   | `netcdf`                         | str         |
+| Variables         | Y                | -                    | -   | `[]` (empty list)                | list of str |
+| Issue Hours       | Y                | -                    | -   | `[]` (empty list)                | list of str |
+| Lookback (window) | Y                | -                    | -   | `48`                             | int         |
+| Step granularity  | Y                | -                    | -   | `1`                              | int         |
+| Logging file path | -                | Y                    | -   | `./logs/DEBUG.log`               | Path        |
+| Concurrent Jobs   | -                | -                    | Y   | `1`                              | int         |
+| Logging verbosity | -                | -                    | Y   | `INFO`                           | str         |
+| Query path        | -                | -                    | Y   | `./queries/default.json`         | Path        |
+| Landing path      | -                | Y                    | Y   | `./data/landing/`                | Path        |
+| Staging path      | -                | Y                    | Y   | `./data/staging/`                | Path        |
+| Dry run           | -                | -                    | Y   | `False`                          | bool        |
+| …                 | …                | …                    | …   | …                                | …           |
 
 ## Query file
 
@@ -209,8 +239,8 @@ Core steps performed by the code:
 1. Load configuration and parse the query JSON
 2. Build a base MARS request using for instance `variables`, `lookback` and `step-granularity`
 3. Create requests for each issued time for the ECMWF API:
-    - If the retrieval mode is `grid`, compute the smallest bounding box for the given points and generate the appropriate `area` and `grid` request parameters
-    - If the retrieval mode is `point`, create one request per point in the query
+   - If the retrieval mode is `grid`, compute the smallest bounding box for the given points and generate the appropriate `area` and `grid` request parameters
+   - If the retrieval mode is `point`, create one request per point in the query
 4. Iterate over the requested dates and issued hours (`issue_hours`) and request forecasts
 5. Allocate storage paths, write the NetCDF file returned by ECMWF, save the query JSON alongside it, and add an entry to `index.csv`
 
@@ -261,7 +291,7 @@ Adjust `config/logging.yml` to change handler levels or formats. The `--verbose`
 Here is a non exhaustif mapping of variables that can be retrieved from one or the other model.
 
 | Short Name | Long Name                                                | Field Code | Available in HRES | Available in ENS |
-|------------|----------------------------------------------------------|------------|-------------------|------------------|
+| ---------- | -------------------------------------------------------- | ---------- | ----------------- | ---------------- |
 | `mx2t3`    | Maximum 2 m temperature (last 3 h)                       | 26.228     | Not tested        | Not tested       |
 | `mn2t3`    | Minimum 2 m temperature (last 3 h)                       | 27.228     | Not tested        | Not tested       |
 | `10fg3`    | Maximum 10 m wind gust (last 3 h)                        | 28.228     | Not tested        | Not tested       |
@@ -301,4 +331,4 @@ Availability of variables in the ENS dataset has not been fully verified. Some e
 
 ## Warnings (dev only)
 
-*WARNING: The preprocessing part might have been broken with the recent features to the retrieval pipeline.*
+_WARNING: The preprocessing part might have been broken with the recent features to the retrieval pipeline._
