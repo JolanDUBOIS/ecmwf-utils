@@ -6,3 +6,7 @@ __pycache__/
 .env
 .vscode/
 .venv/
+.micromamba/
+.DS_Store
+.ecmwfapirc
+notebooks/result
