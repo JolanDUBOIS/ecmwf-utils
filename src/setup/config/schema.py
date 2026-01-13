@@ -10,6 +10,7 @@ from .defaults import (
     DEFAULT_RETRIEVAL_MODE, ALLOWED_RETRIEVAL_MODES,
     DEFAULT_FORMAT, ALLOWED_FORMATS,
 )
+from ..prompts import prompt_create_path
 
 
 @dataclass
@@ -46,6 +47,18 @@ class PipelineConfig:
             self.logging_path = Path(self.logging_path)
         if not isinstance(self.query_path, Path):
             self.query_path = Path(self.query_path)
+
+        # Ensure paths exist
+        if not self.landing_path.exists():
+            prompt_create_path(self.landing_path, "Landing directory")
+
+        staging_dir = self.staging_path.parent
+        if not staging_dir.exists():
+            prompt_create_path(staging_dir, "Staging directory")
+
+        log_dir = self.logging_path.parent
+        if not log_dir.exists():
+            prompt_create_path(log_dir, "Log directory")
         
         # Validate model
         if self.model not in ALLOWED_MODELS:
