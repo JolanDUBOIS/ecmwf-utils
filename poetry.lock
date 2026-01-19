@@ -344,6 +344,18 @@ files = [
 ]
 
 [[package]]
+name = "ecmwf-api-client"
+version = "1.6.5"
+description = "Python client for ECMWF web services API."
+optional = false
+python-versions = "*"
+groups = ["main"]
+files = [
+    {file = "ecmwf_api_client-1.6.5-py3-none-any.whl", hash = "sha256:82678c2c18083b44be74b23e2a7e82d2343061966c0bf3a895272b9e9a802836"},
+    {file = "ecmwf_api_client-1.6.5.tar.gz", hash = "sha256:1fc0eba27163686b7fba5da027cc5dc0a361f75b652508fa7805f50599368b1c"},
+]
+
+[[package]]
 name = "executing"
 version = "2.2.1"
 description = "Get the currently executing AST node of a frame, and other information"
@@ -1271,4 +1283,4 @@ viz = ["cartopy (>=0.23)", "matplotlib (>=3.8)", "nc-time-axis", "seaborn"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.12,<3.13"
-content-hash = "ab9f18f6b1b69e26de24102983b548c052ed9aa08e92feef436839bb3f6e43d9"
+content-hash = "16c9323eb7359fc95ee693c8a1d0066bcb295dc9c2e9d12d5a0a65129c6e087c"
