@@ -23,7 +23,7 @@ Refer to `requirements.txt` for the exact dependency list and versions.
 Create the environment with Mamba:
 
 ```bash
-mamba create -n ecmwf-utils python=3.11
+mamba create -n ecmwf-utils python=3.12
 ```
 
 Install dependencies into the environment:
